@@ -1,0 +1,252 @@
+---
+description: Best practices for using Drizzle ORM with PostgreSQL
+globs: **/db/*.ts, **/server/**/*.ts
+alwaysApply: false
+---
+
+# Drizzle ORM Best Practices
+
+Standards for using Drizzle ORM with PostgreSQL. Auto-included for TypeScript and TSX files in db directories.
+
+<rule>
+name: drizzle_orm_best_practices
+description: Best practices for using Drizzle ORM with PostgreSQL. Auto-included for TypeScript and TSX files in db directories.
+globs: ["**/db/*.{ts,tsx}", "**/server/**/*.{ts,tsx}"]
+filters:
+  - type: file_extension
+    pattern: "\\.(ts|tsx)$"
+  - type: path
+    pattern: ".*/(?:db|server)/.*"
+actions:
+  - type: suggest
+    message: |
+      Follow these Drizzle ORM best practices:
+
+      1. Schema Definition:
+         - Use proper column types
+         - Export types for each schema
+         - Define explicit relationships
+         - Use proper naming conventions
+         - Use `.$type<T>()` for JSON field type definitions:
+           ```typescript
+           // Bad: JSON field without type definition
+           jsonField: json('json_field'),
+
+           // Good: JSON field with type definition using .$type
+           jsonField: json('json_field').$type<UserConfig>()
+           ```
+         - Avoid using deprecated third argument in pgTable:
+           ```typescript
+           // Bad: Using deprecated third argument
+           export const users = pgTable('users', {
+             // columns
+           }, (table) => {
+             return {
+               uniqueIdx: uniqueIndex('unique_idx').on(table.email)
+             };
+           });
+
+           // Good: Using the new API without third argument
+           export const users = pgTable('users', {
+             // columns
+           });
+
+           // Create indexes separately
+           export const usersEmailIndex = uniqueIndex('users_email_idx').on(users.email);
+           ```
+
+      2. Type Exports:
+         - Export table types using typeof
+         - Export inferred types for each table
+         - Export relationship types
+         - Use proper type naming conventions
+
+      3. Relationships:
+         - Define explicit relationships using references:
+           ```typescript
+           // Good: One-to-many relationship
+           export const users = pgTable('users', {
+             id: serial('id').primaryKey(),
+             teamId: integer('team_id').references(() => teams.id, { onDelete: 'cascade' })
+           });
+
+           // Good: Many-to-many relationship
+           export const userToProjects = pgTable('user_to_projects', {
+             userId: integer('user_id').references(() => users.id),
+             projectId: integer('project_id').references(() => projects.id),
+             // Make the combination of both IDs the primary key
+             $$primaryKey: { columns: [userId, projectId] }
+           });
+
+           // Good: One-to-one relationship
+           export const users = pgTable('users', {
+             id: serial('id').primaryKey(),
+             // Other columns
+           });
+
+           export const profiles = pgTable('profiles', {
+             id: serial('id').primaryKey(),
+             userId: integer('user_id').notNull().unique().references(() => users.id, { onDelete: 'cascade' })
+           });
+           ```
+         - Implement relations setup in queries:
+           ```typescript
+           import { relations } from 'drizzle-orm';
+
+           export const usersRelations = relations(users, ({ one, many }) => ({
+             profile: one(profiles, {
+               fields: [users.id],
+               references: [profiles.userId],
+             }),
+             posts: many(posts),
+             team: one(teams, {
+               fields: [users.teamId],
+               references: [teams.id],
+             }),
+           }));
+
+           export const teamsRelations = relations(teams, ({ many }) => ({
+             users: many(users),
+           }));
+           ```
+
+      4. Query Building:
+         - Use type-safe queries
+         - Implement proper joins
+         - Use prepared statements
+         - Handle complex queries properly
+
+      5. Performance & Security:
+         - Use proper indexes
+         - Implement query optimization
+         - Use parameterized queries
+         - Handle sensitive data properly
+
+      6. Validators:
+         - Place validators unrelated to database schemas in `/validators` folder
+         - Use Drizzle Zod for schema validation:
+           ```typescript
+           import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+
+           // Generate Zod schema from Drizzle schema
+           export const insertUserSchema = createInsertSchema(users);
+           export const selectUserSchema = createSelectSchema(users);
+
+           // Extend generated schema with additional validations
+           export const extendedUserSchema = insertUserSchema.extend({
+             email: z.string().email("Invalid email format"),
+             password: z.string().min(8, "Password must be at least 8 characters"),
+           });
+
+           // For validators unrelated to DB schemas, create them in /validators folder
+           // /validators/contactForm.ts
+           export const contactFormSchema = z.object({
+             name: z.string().min(2, "Name must be at least 2 characters"),
+             email: z.string().email("Invalid email format"),
+             message: z.string().min(10, "Message must be at least 10 characters"),
+           });
+           ```
+
+examples:
+  - input: |
+      // Bad: Schema without type exports and relationships
+      export const users = pgTable('users', {
+        id: serial('id').primaryKey(),
+        name: text('name'),
+        email: varchar('email', { length: 255 })
+      });
+
+      // Good: Schema with type exports and relationships
+      import { InferModel } from 'drizzle-orm';
+      import { pgTable, serial, text, varchar, foreignKey } from 'drizzle-orm/pg-core';
+
+      export const users = pgTable('users', {
+        id: serial('id').primaryKey(),
+        name: text('name').notNull(),
+        email: varchar('email', { length: 255 }).notNull().unique(),
+        teamId: integer('team_id').references(() => teams.id, { onDelete: 'cascade' })
+      });
+
+      export const teams = pgTable('teams', {
+        id: serial('id').primaryKey(),
+        name: text('name').notNull()
+      });
+
+      // Type exports
+      export type User = InferModel<typeof users>;
+      export type NewUser = InferModel<typeof users, 'insert'>;
+      export type Team = InferModel<typeof teams>;
+      export type NewTeam = InferModel<typeof teams, 'insert'>;
+    output: "Define schemas with proper type exports and relationships"
+
+  - input: |
+      // Bad: Not using relationships in queries
+      const user = await db.select().from(users).where(eq(users.id, userId));
+
+      // Good: Using relationships in queries
+      const userWithTeam = await db.select({
+        id: users.id,
+        name: users.name,
+        team: {
+          id: teams.id,
+          name: teams.name
+        }
+      })
+      .from(users)
+      .leftJoin(teams, eq(users.teamId, teams.id))
+      .where(eq(users.id, userId));
+    output: "Use proper relationship queries with type safety"
+
+  - input: |
+      // Bad: JSON field without type information
+      export const users = pgTable('users', {
+        id: serial('id').primaryKey(),
+        settings: json('settings')
+      });
+
+      // Good: JSON field with type definition
+      interface UserSettings {
+        theme: 'light' | 'dark';
+        notifications: boolean;
+        language: string;
+      }
+
+      export const users = pgTable('users', {
+        id: serial('id').primaryKey(),
+        settings: json('settings').$type<UserSettings>()
+      });
+    output: "Define type information for JSON fields using .$type<T>()"
+
+  - input: |
+      // Bad: Not using drizzle-zod for validation
+      export const createUserSchema = z.object({
+        name: z.string().min(2),
+        email: z.string().email(),
+        age: z.number().min(18)
+      });
+
+      // Good: Using drizzle-zod for validation
+      import { createInsertSchema } from 'drizzle-zod';
+
+      export const users = pgTable('users', {
+        id: serial('id').primaryKey(),
+        name: text('name').notNull(),
+        email: varchar('email', { length: 255 }).notNull().unique(),
+        age: integer('age').notNull()
+      });
+
+      // Generate base schema
+      export const insertUserSchema = createInsertSchema(users);
+
+      // Extend with additional validations
+      export const createUserSchema = insertUserSchema.extend({
+        name: z.string().min(2, "Name must be at least 2 characters"),
+        email: z.string().email("Invalid email format"),
+        age: z.number().min(18, "Must be at least 18 years old")
+      });
+    output: "Use drizzle-zod to generate and extend validation schemas from database tables"
+
+metadata:
+  priority: high
+  version: 1.1
+</rule>

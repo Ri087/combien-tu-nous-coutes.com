@@ -1,0 +1,61 @@
+---
+description: 
+globs: **/*
+alwaysApply: true
+---
+
+# Available Cursor Rules
+
+This file lists all available Cursor rules in this project with instructions on how to read them.
+
+<rule>
+name: available_rules
+description: List of all available Cursor rules with instructions on how to read them. Auto-included for all files.
+globs: ["**/*"]
+actions:
+  - type: suggest
+    message: |
+      Cursor rules are user provided instructions for the AI to follow to help work with the codebase.
+      They may or may not be relevent to the task at hand. If they are, use the fetch_rules tool to fetch the full rule.
+      Some rules may be automatically attached to the conversation if the user attaches a file that matches the rule's glob, and wont need to be fetched.
+
+      <available_instructions>
+      align-ui-conventions: Conventions for using UI components, using components and creating new custom components
+      cursor-rules-location: Standards for placing and organizing Cursor rule files
+      drizzle-orm-best-practices: Best practices for using Drizzle ORM with PostgreSQL
+      effective-prompting: Best practices for creating effective prompts for Large Language Models
+      global-project-config: Global project configuration and standards
+      motion-react: Animating with the Motion for React animation library
+      nextjs-best-practices: Best practices for Next.js applications and routing
+      react-best-practices: Best practices for React development
+      react-hook-form-best-practices: Forms rules and instructions
+      search-params-pattern: Standards for handling search params with nuqs in Next.js
+      trigger-dev-rules: Guidelines for writing Trigger.dev tasks
+      typescript-best-practices: Standards for TypeScript development.
+      zod-best-practices: Best practices for using Zod for schema validation
+      </available_instructions>
+
+      ## How to Read Rules
+
+      To access a specific rule, use the fetch_rules tool with the rule name:
+
+      ```
+      fetch_rules(["rule-name"])
+      ```
+
+      For example:
+      ```
+      fetch_rules(["react-best-practices"])
+      ```
+
+      You can also fetch multiple rules at once:
+      ```
+      fetch_rules(["typescript-best-practices", "nextjs-best-practices"])
+      ```
+
+      Some rules are automatically attached to the conversation when a file matching their glob pattern is referenced.
+
+metadata:
+  priority: high
+  version: 1.0
+</rule>

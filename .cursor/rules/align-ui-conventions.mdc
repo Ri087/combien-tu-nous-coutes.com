@@ -1,0 +1,228 @@
+---
+description: Conventions for using AlignUI components and creating custom components
+globs: components/**/*.tsx, hooks/**/*.ts
+alwaysApply: false
+---
+
+# AlignUI and Custom Components Conventions
+
+Standards for using AlignUI components and creating custom components. Auto-included for component and hook files.
+
+<rule>
+name: align_ui_conventions
+description: Standards for using AlignUI components and creating custom components. Auto-included for component and hook files.
+globs: ["components/**/*.tsx", "hooks/**/*.ts"]
+filters:
+  - type: file_extension
+    pattern: "\\.(tsx|ts)$"
+  - type: path
+    pattern: "^(components|hooks)/"
+
+actions:
+  - type: suggest
+    message: |
+      ## Directory Structure
+      - AlignUI components go in `components/ui/`
+      - Custom components go in `components/custom/`
+      - Reusable hooks go in `hooks/`
+
+      ## File Naming Conventions
+      - All files should use lowercase kebab-case (e.g., `button-group.tsx`, not `ButtonGroup.tsx`)
+      - Component directories should match component names
+      - Client components should end with `.client.tsx` suffix
+      - Server components should use regular `.tsx` extension
+      - Utility files should use descriptive, action-oriented names
+
+      ## Using AlignUI Components
+      1. Always import using namespace imports:
+      ```typescript
+      import * as Button from "@/components/ui/button";
+      import * as Tooltip from "@/components/ui/tooltip";
+      ```
+
+      2. Use the namespaced components with proper component composition:
+      ```typescript
+      <Button.Root>
+        <Button.Icon as={Icon} />
+      </Button.Root>
+      ```
+
+      3. Follow AlignUI prop patterns:
+      - Use `variant`, `mode`, and `size` for styling variants
+      - Use `as` prop for icon components
+      - Use `asChild` when needed with Radix primitives
+
+      4. Common component patterns:
+      ```typescript
+      // Input component pattern
+      <Input.Root>
+        <Input.Wrapper>
+          <Input.Input
+            id={`${uniqueId}-name`}
+            placeholder="Enter text..."
+          />
+        </Input.Wrapper>
+      </Input.Root>
+
+      // Select component pattern
+      <Select.Root>
+        <Select.Trigger>
+          <Select.Value placeholder="Select an option" />
+        </Select.Trigger>
+        <Select.Content>
+          <Select.Item value="option1">Option 1</Select.Item>
+          <Select.Item value="option2">Option 2</Select.Item>
+        </Select.Content>
+      </Select.Root>
+      ```
+
+      ## Available AlignUI Components
+      - Accordion
+      - Alert
+      - Avatar
+      - AvatarGroup
+      - AvatarGroupCompact
+      - Badge
+      - Breadcrumb
+      - Button
+      - ButtonGroup
+      - Checkbox
+      - CommandMenu
+      - CompactButton
+      - Datepicker
+      - DigitInput
+      - Divider
+      - DotStepper
+      - Drawer
+      - Dropdown
+      - FancyButton
+      - FileFormatIcon
+      - FileUpload
+      - Form
+      - Hint
+      - HorizontalStepper
+      - Icons
+      - Input
+      - Kbd
+      - Label
+      - LinkButton
+      - Modal
+      - Notification
+      - NotificationProvider
+      - Pagination
+      - Popover
+      - ProgressBar
+      - ProgressCircle
+      - Radio
+      - SegmentedControl
+      - Select
+      - Slider
+      - SocialButton
+      - SocialIcons
+      - StatusBadge
+      - Switch
+      - TabMenuHorizontal
+      - TabMenuVertical
+      - Table
+      - Tag
+      - TextArea
+      - Tooltip
+      - VerticalStepper
+
+      ## Creating Custom Components
+      1. File Structure:
+      ```typescript
+      "use client";
+
+      import { type ComponentPropsWithoutRef, forwardRef } from "react";
+      // Group imports by type (React, AlignUI, hooks, utils)
+
+      interface ComponentProps extends ComponentPropsWithoutRef<"element"> {
+        // Strong typing for props
+      }
+
+      const Component = forwardRef<HTMLElementType, ComponentProps>((
+        { className, ...props },
+        ref
+      ) => {
+        return (/* ... */);
+      });
+      Component.displayName = "Component";
+
+      export { Component };
+      ```
+
+      2. Best Practices:
+      - Use `forwardRef` for all components
+      - Extend appropriate HTML element props
+      - Use TypeScript for strong typing
+      - Follow AlignUI naming conventions
+      - Use `cn()` for className merging
+      - Keep components focused and composable
+
+      3. State Management:
+      - Extract complex logic into custom hooks
+      - Place hooks in `hooks/` directory
+      - Keep components presentational when possible
+
+      4. Styling:
+      - Use Tailwind classes
+      - Follow AlignUI color tokens
+      - Support dark mode with `dark:` variants
+      - Use motion components for animations
+
+      5. Accessibility:
+      - Use semantic HTML
+      - Support keyboard navigation
+      - Include ARIA attributes
+      - Handle focus management
+
+examples:
+  - input: |
+      // Bad: Direct import of component
+      import { Button } from "@/components/ui/button";
+
+      // Good: Namespace import
+      import * as Button from "@/components/ui/button";
+
+      // Bad: No forwardRef, no proper typing
+      export const CustomComponent = ({ className }) => {
+        return <div className={className} />;
+      };
+
+      // Good: Complete component structure
+      interface CustomComponentProps extends ComponentPropsWithoutRef<"div"> {
+        // Props
+      }
+
+      const CustomComponent = forwardRef<HTMLDivElement, CustomComponentProps>((
+        { className, ...props },
+        ref
+      ) => {
+        return (
+          <div
+            ref={ref}
+            className={cn("base-classes", className)}
+            {...props}
+          />
+        );
+      });
+
+      // Bad: Incomplete Input implementation
+      <Input placeholder="Enter text..." />
+
+      // Good: Complete Input implementation with proper composition
+      <Input.Root>
+        <Input.Wrapper>
+          <Input.Input
+            id={`${uniqueId}-name`}
+            placeholder="Enter text..."
+          />
+        </Input.Wrapper>
+      </Input.Root>
+    output: "Examples of correct and incorrect component implementations"
+
+metadata:
+  priority: high
+  version: 1.0
+</rule>

@@ -1,0 +1,77 @@
+---
+description: Standards for handling search params with nuqs in Next.js
+globs: 
+alwaysApply: false
+---
+# Search Params Pattern
+
+Standards for handling search params with nuqs in Next.js. Auto-included for searchParams.ts files.
+
+<rule>
+name: search_params_pattern
+description: Standards for handling search params with nuqs in Next.js. Auto-included for searchParams.ts files.
+globs: ["app/**/**/searchParams.ts"]
+filters:
+  - type: file_extension
+    pattern: "\\.ts$"
+  - type: file_name
+    pattern: "searchParams\\.ts$"
+actions:
+  - type: suggest
+    message: |
+      Follow these standards for handling search params:
+
+      1. Search Params Configuration:
+         - Define parsers separately in an exported object
+         - Use descriptive names for parser objects
+         - Export searchParamsCache using the parsers object
+
+      2. File Structure:
+         ```typescript
+         import { createSearchParamsCache, parseAsString } from "nuqs/server";
+
+         export const myParsers = {
+             param1: parseAsString.withDefault(""),
+             param2: parseAsString.withDefault(""),
+         };
+
+         export const searchParamsCache = createSearchParamsCache(myParsers);
+         ```
+
+      3. Page Component:
+         - Import SearchParams type and searchParamsCache
+         - Parse search params in the page component
+         - Don't pass search params as props to client components
+
+      4. Client Components:
+         - Import useQueryStates from nuqs
+         - Import parsers from searchParams.ts
+         - Use useQueryStates hook to access search params directly
+
+examples:
+  - input: |
+      // Bad: Inline parser definition
+      export const searchParamsCache = createSearchParamsCache({
+          param: parseAsString,
+      });
+
+      // Good: Separate parser definition
+      export const myParsers = {
+          param: parseAsString.withDefault(""),
+      };
+      export const searchParamsCache = createSearchParamsCache(myParsers);
+    output: "Define parsers separately for reuse in client components"
+
+  - input: |
+      // Bad: Passing search params as props
+      const { param } = await searchParamsCache.parse(searchParams);
+      return <MyComponent param={param} />;
+
+      // Good: Using useQueryStates in client component
+      const [{ param }] = useQueryStates(myParsers);
+    output: "Use useQueryStates in client components instead of passing search params as props"
+
+metadata:
+  priority: high
+  version: 1.0
+</rule>
