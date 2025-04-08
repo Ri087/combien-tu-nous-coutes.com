@@ -1,98 +1,97 @@
 // AlignUI FileFormatIcon v0.0.0
 
-import * as React from 'react';
-import { tv, type VariantProps } from '@/utils/tv';
+import * as React from "react";
+import { tv, type VariantProps } from "@/lib/utils/tv";
 
 export const fileFormatIconVariants = tv({
-  slots: {
-    root: 'relative shrink-0',
-    formatBox:
-      'absolute bottom-1.5 left-0 flex h-4 items-center rounded px-[3px] py-0.5 text-[11px] font-semibold leading-none text-static-white',
-  },
-  variants: {
-    size: {
-      medium: {
-        root: 'size-10',
-      },
-      small: {
-        root: 'size-8',
-      },
+    slots: {
+        root: "relative shrink-0",
+        formatBox: [
+            "absolute flex items-center rounded px-1 py-[3px]",
+            "font-semibold tracking-[0.02em] text-static-white",
+            "shadow-[0_19px_8px_rgba(115,31,8,0.01),0_11px_6px_rgba(115,31,8,0.04),0_5px_5px_rgba(115,31,8,0.07),0_1px_3px_rgba(115,31,8,0.08),0_0_0_1px_rgb(229,63,16),inset_0_-0.5px_0.5px_rgba(255,255,255,0.36)]",
+        ],
     },
-    color: {
-      red: {
-        formatBox: 'bg-error-base',
-      },
-      orange: {
-        formatBox: 'bg-warning-base',
-      },
-      yellow: {
-        formatBox: 'bg-away-base',
-      },
-      green: {
-        formatBox: 'bg-success-base',
-      },
-      sky: {
-        formatBox: 'bg-verified-base',
-      },
-      blue: {
-        formatBox: 'bg-information-base',
-      },
-      purple: {
-        formatBox: 'bg-feature-base',
-      },
-      pink: {
-        formatBox: 'bg-highlighted-base',
-      },
-      gray: {
-        formatBox: 'bg-faded-base',
-      },
+    variants: {
+        size: {
+            large: {
+                root: "w-10",
+                formatBox: "-left-2 bottom-[13px] h-5 text-[13px]/[14px]",
+            },
+            medium: {
+                root: "w-9",
+                formatBox: "-left-1.5 bottom-[11px] h-4 text-[11px]/[12px]",
+            },
+            small: {
+                root: "w-8",
+                formatBox:
+                    "-left-1 bottom-[11px] h-3.5 text-[10px]/[11px] rounded-[3px]",
+            },
+        },
+        color: {
+            red: {
+                formatBox: "bg-error-base",
+            },
+            orange: {
+                formatBox: "bg-warning-base",
+            },
+            yellow: {
+                formatBox: "bg-away-base",
+            },
+            green: {
+                formatBox: "bg-success-base",
+            },
+            sky: {
+                formatBox: "bg-verified-base",
+            },
+            blue: {
+                formatBox: "bg-information-base",
+            },
+            purple: {
+                formatBox: "bg-feature-base",
+            },
+            pink: {
+                formatBox: "bg-highlighted-base",
+            },
+            gray: {
+                formatBox: "bg-faded-base",
+            },
+        },
     },
-  },
-  defaultVariants: {
-    color: 'gray',
-    size: 'medium',
-  },
+    defaultVariants: {
+        color: "gray",
+        size: "medium",
+    },
 });
 
 function FileFormatIcon({
-  format,
-  className,
-  color,
-  size,
-  ...rest
+    format,
+    className,
+    color,
+    size,
+    ...rest
 }: VariantProps<typeof fileFormatIconVariants> &
-  React.SVGProps<SVGSVGElement>) {
-  const { root, formatBox } = fileFormatIconVariants({ color, size });
+    React.SVGProps<SVGSVGElement>) {
+    const { root, formatBox } = fileFormatIconVariants({ color, size });
 
-  return (
-    <svg
-      width='40'
-      height='40'
-      viewBox='0 0 40 40'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-      className={root({ class: className })}
-      {...rest}
-    >
-      <path
-        d='M30 39.25H10C7.10051 39.25 4.75 36.8995 4.75 34V6C4.75 3.10051 7.10051 0.75 10 0.75H20.5147C21.9071 0.75 23.2425 1.30312 24.227 2.28769L33.7123 11.773C34.6969 12.7575 35.25 14.0929 35.25 15.4853V34C35.25 36.8995 32.8995 39.25 30 39.25Z'
-        className='fill-bg-white-0 stroke-stroke-sub-300'
-        strokeWidth='1.5'
-      />
-      <path
-        d='M23 1V9C23 11.2091 24.7909 13 27 13H35'
-        className='stroke-stroke-sub-300'
-        strokeWidth='1.5'
-      />
-      <foreignObject x='0' y='0' width='40' height='40'>
-        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-        {/* @ts-ignore */}
-        <div xmlns='http://www.w3.org/1999/xhtml' className={formatBox()}>
-          {format}
+    return (
+        <div className={root({ class: className })}>
+            <svg
+                width="100%"
+                height="100%"
+                viewBox="0 0 36 48"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                {...rest}
+            >
+                <path
+                    d="M27.8 48H8.2c-2.99 0-4.484 0-5.609-.618a5 5 0 0 1-1.973-1.973C0 44.284 0 42.789 0 39.8V8.2c0-2.99 0-4.484.618-5.609A5 5 0 0 1 2.591.618C3.716 0 5.211 0 8.2 0h12.032c1.314 0 1.971 0 2.587.16a5 5 0 0 1 1.31.546c.546.325 1.008.793 1.932 1.727l7.569 7.65c.91.921 1.366 1.382 1.683 1.923.237.404.416.84.532 1.294.155.608.155 1.255.155 2.55V39.8c0 2.99 0 4.484-.618 5.609a5 5 0 0 1-1.973 1.973C32.284 48 30.789 48 27.8 48Z"
+                    className="fill-bg-soft-200"
+                />
+            </svg>
+            <div className={formatBox()}>{format}</div>
         </div>
-      </foreignObject>
-    </svg>
-  );
+    );
 }
 
 export { FileFormatIcon as Root };
