@@ -14,12 +14,12 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Features
 
-- 🔸 Includes all styles
-- 🔸 Ready-to-use Tailwind setup
-- 🔸 All base components included
-- 🔸 All utils included
-- 🔸 Inter font setup
-- 🔸 Dark mode toggle included
+-   🔸 Includes all styles
+-   🔸 Ready-to-use Tailwind setup
+-   🔸 All base components included
+-   🔸 All utils included
+-   🔸 Inter font setup
+-   🔸 Dark mode toggle included
 
 ## Getting Started
 
