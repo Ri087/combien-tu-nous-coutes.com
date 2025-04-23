@@ -3,12 +3,14 @@
 "use client";
 
 import * as React from "react";
-import { Command } from "cmdk";
-import { cn } from "@/lib/utils/cn";
-import { tv, type VariantProps } from "@/lib/utils/tv";
-import { PolymorphicComponentProps } from "@/lib/utils/polymorphic";
-import * as Modal from "@/components/ui/modal";
+
 import { type DialogProps } from "@radix-ui/react-dialog";
+import { Command } from "cmdk";
+
+import * as Modal from "@/components/ui/modal";
+import { cn } from "@/lib/utils/cn";
+import { PolymorphicComponentProps } from "@/lib/utils/polymorphic";
+import { tv, type VariantProps } from "@/lib/utils/tv";
 
 const CommandDialogTitle = Modal.Title;
 const CommandDialogDescription = Modal.Description;

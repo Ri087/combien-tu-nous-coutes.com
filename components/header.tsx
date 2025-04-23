@@ -1,8 +1,10 @@
 "use client";
 
-import { PROJECT } from "@/constants/project";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+
+import { PROJECT } from "@/constants/project";
+
 import { Logo } from "./logo";
 
 const ThemeSwitchWrapper = () => {

@@ -3,11 +3,13 @@
 "use client";
 
 import * as React from "react";
+
+import { Slottable } from "@radix-ui/react-slot";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import mergeRefs from "merge-refs";
-import { Slottable } from "@radix-ui/react-slot";
-import { cn } from "@/lib/utils/cn";
+
 import { useTabObserver } from "@/hooks/use-tab-observer";
+import { cn } from "@/lib/utils/cn";
 
 const SegmentedControlRoot = TabsPrimitive.Root;
 SegmentedControlRoot.displayName = "SegmentedControlRoot";

@@ -3,13 +3,15 @@
 "use client";
 
 import * as React from "react";
-import * as SelectPrimitives from "@radix-ui/react-select";
+
 import * as ScrollAreaPrimitives from "@radix-ui/react-scroll-area";
+import * as SelectPrimitives from "@radix-ui/react-select";
 import { Slottable } from "@radix-ui/react-slot";
 import { RiArrowDownSLine, RiCheckLine } from "@remixicon/react";
-import { tv, type VariantProps } from "@/lib/utils/tv";
+
 import { cn } from "@/lib/utils/cn";
 import type { PolymorphicComponentProps } from "@/lib/utils/polymorphic";
+import { tv, type VariantProps } from "@/lib/utils/tv";
 
 export const selectVariants = tv({
     slots: {

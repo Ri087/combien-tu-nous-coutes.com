@@ -1,6 +1,7 @@
-import * as Button from "@/components/ui/button";
 import { RiGithubFill } from "@remixicon/react";
 import Link from "next/link";
+
+import * as Button from "@/components/ui/button";
 
 export default function Home() {
     return (

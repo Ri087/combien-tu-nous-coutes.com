@@ -2,12 +2,14 @@
 
 "use client";
 
-import { RiArrowLeftSLine, RiArrowRightSLine } from "@remixicon/react";
 import * as React from "react";
+
+import { RiArrowLeftSLine, RiArrowRightSLine } from "@remixicon/react";
+import clsx from "clsx";
 import { DayPicker } from "react-day-picker";
 
 import { compactButtonVariants } from "@/components/ui/compact-button";
-import clsx from "clsx";
+
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 

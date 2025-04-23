@@ -1,9 +1,11 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { useTheme } from "next-themes";
 import * as React from "react";
+
+import { useTheme } from "next-themes";
 import { Toaster as Sonner } from "sonner";
+
+import { cn } from "@/lib/utils";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
