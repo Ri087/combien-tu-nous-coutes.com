@@ -1,5 +1,7 @@
 import { Redis } from "@upstash/redis";
 
+import { env } from "@/env";
+
 /**
  * Redis client instance using Upstash
  *
@@ -7,8 +9,8 @@ import { Redis } from "@upstash/redis";
  * Used for caching, rate limiting, and session storage.
  */
 export const redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL || "",
-    token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
+    url: env.UPSTASH_REDIS_REST_URL || "",
+    token: env.UPSTASH_REDIS_REST_TOKEN || "",
 });
 
 // Export a type-safe singleton instance

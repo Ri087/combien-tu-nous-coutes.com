@@ -1,14 +1,17 @@
 "use client";
 
-import PostHogPageView from "@/lib/posthog/pageview";
+import { useEffect } from "react";
+
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
-import { useEffect } from "react";
+
+import { env } from "@/env";
+import PostHogPageView from "@/lib/posthog/pageview";
 
 export function CSPostHogProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
-        posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-            api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+        posthog.init(env.NEXT_PUBLIC_POSTHOG_KEY!, {
+            api_host: env.NEXT_PUBLIC_POSTHOG_HOST,
             capture_pageview: false,
             capture_pageleave: true,
             enable_heatmaps: true,
