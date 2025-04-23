@@ -1,7 +1,8 @@
 // AlignUI Banner v0.0.0
 
-import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
+
+import { Slot } from "@radix-ui/react-slot";
 
 import { PolymorphicComponentProps } from "@/lib/utils/polymorphic";
 import { recursiveCloneChildren } from "@/lib/utils/recursive-clone-children";

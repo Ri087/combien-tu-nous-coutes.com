@@ -1,5 +1,6 @@
-import { cn } from "@/lib/utils";
 import { Section } from "@react-email/components";
+
+import { cn } from "@/lib/utils";
 
 interface LogoProps {
     className?: string;

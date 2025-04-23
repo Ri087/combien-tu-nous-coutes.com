@@ -3,10 +3,12 @@
 "use client";
 
 import * as React from "react";
+
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
+import { RiAddLine, RiSubtractLine } from "@remixicon/react";
+
 import { cn } from "@/lib/utils/cn";
 import type { PolymorphicComponentProps } from "@/lib/utils/polymorphic";
-import { RiAddLine, RiSubtractLine } from "@remixicon/react";
 
 const ACCORDION_ITEM_NAME = "AccordionItem";
 const ACCORDION_ICON_NAME = "AccordionIcon";

@@ -1,10 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
+import { usePostHog } from "posthog-js/react";
+import { useLocalStorage } from "usehooks-ts";
+
 import * as Alert from "@/components/ui/alert";
 import * as Button from "@/components/ui/button";
-import { usePostHog } from "posthog-js/react";
-import { useEffect, useState } from "react";
-import { useLocalStorage } from "usehooks-ts";
+
 
 type ConsentStatus = "yes" | "no" | "undecided";
 

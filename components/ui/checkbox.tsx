@@ -1,7 +1,9 @@
 // AlignUI Checkbox v0.0.0
 
 import * as React from "react";
+
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
+
 import { cn } from "@/lib/utils/cn";
 
 function IconCheck({ ...rest }: React.SVGProps<SVGSVGElement>) {

@@ -1,9 +1,10 @@
 import { PROJECT } from "@/constants/project";
+
+import { Logomark } from "./common/logomark";
 import { Card } from "./components/card";
 import { EmailButton } from "./components/email-button";
 import { EmailLayout } from "./components/email-layout";
 import { EmailFooter, EmailHeading, EmailText } from "./components/email-text";
-import { Logomark } from "./common/logomark";
 
 interface WaitlistApprovedTemplateProps {
     signUpUrl: string;
@@ -25,7 +26,7 @@ export default function WaitlistApprovedTemplate({
             </div>
 
             <Card>
-                <EmailHeading>You're in!</EmailHeading>
+                <EmailHeading>You&apos;re in!</EmailHeading>
 
                 <EmailText>
                     Thank you for your interest in{" "}

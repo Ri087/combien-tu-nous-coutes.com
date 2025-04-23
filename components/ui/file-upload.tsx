@@ -1,9 +1,11 @@
 // AlignUI FileUpload v0.0.0
 
 import * as React from "react";
+
+import { Slot } from "@radix-ui/react-slot";
+
 import { cn } from "@/lib/utils/cn";
 import { PolymorphicComponentProps } from "@/lib/utils/polymorphic";
-import { Slot } from "@radix-ui/react-slot";
 
 interface FileUploadRootProps
     extends React.LabelHTMLAttributes<HTMLLabelElement> {

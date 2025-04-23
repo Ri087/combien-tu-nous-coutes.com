@@ -1,7 +1,8 @@
 import React from "react";
+
 import { Logo } from "@/components/logo";
-import { cn } from "@/lib/utils/cn";
 import { PROJECT } from "@/constants/project";
+import { cn } from "@/lib/utils/cn";
 
 interface LogomarkProps {
     className?: string;

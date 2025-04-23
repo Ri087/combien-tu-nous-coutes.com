@@ -1,11 +1,13 @@
+import { Inter as FontSans } from "next/font/google";
+import localFont from "next/font/local";
+import { ThemeProvider } from "next-themes";
+
 import Header from "@/components/header";
 import { NotificationProvider } from "@/components/ui/notification-provider";
 import { Provider as TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils/cn";
+
 import type { Metadata } from "next";
-import { ThemeProvider } from "next-themes";
-import { Inter as FontSans } from "next/font/google";
-import localFont from "next/font/local";
 import "./globals.css";
 
 const inter = FontSans({

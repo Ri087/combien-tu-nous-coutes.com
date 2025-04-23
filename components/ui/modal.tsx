@@ -1,10 +1,12 @@
 // AlignUI Modal v0.0.0
 
 import * as React from "react";
+
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { type RemixiconComponentType, RiCloseLine } from "@remixicon/react";
+
 import * as CompactButton from "@/components/ui/compact-button";
 import { cn } from "@/lib/utils/cn";
-import { type RemixiconComponentType, RiCloseLine } from "@remixicon/react";
 
 const ModalRoot = DialogPrimitive.Root;
 const ModalTrigger = DialogPrimitive.Trigger;

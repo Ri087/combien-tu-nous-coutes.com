@@ -2,8 +2,8 @@
 
 import * as React from "react";
 
-import { cn } from "@/lib/utils/cn";
 import * as Divider from "@/components/ui/divider";
+import { cn } from "@/lib/utils/cn";
 
 const Table = React.forwardRef<
     HTMLTableElement,
