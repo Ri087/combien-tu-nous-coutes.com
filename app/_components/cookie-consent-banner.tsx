@@ -8,7 +8,6 @@ import { useLocalStorage } from "usehooks-ts";
 import * as Alert from "@/components/ui/alert";
 import * as Button from "@/components/ui/button";
 
-
 type ConsentStatus = "yes" | "no" | "undecided";
 
 export function cookieConsentGiven(): ConsentStatus {

@@ -9,7 +9,6 @@ import type { PolymorphicComponentProps } from "@/lib/utils/polymorphic";
 import { recursiveCloneChildren } from "@/lib/utils/recursive-clone-children";
 import { tv, type VariantProps } from "@/lib/utils/tv";
 
-
 const PAGINATION_ROOT_NAME = "PaginationRoot";
 const PAGINATION_ITEM_NAME = "PaginationItem";
 const PAGINATION_NAV_BUTTON_NAME = "PaginationNavButton";

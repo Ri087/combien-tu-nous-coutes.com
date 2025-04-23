@@ -8,7 +8,6 @@ import { PolymorphicComponentProps } from "@/lib/utils/polymorphic";
 import { recursiveCloneChildren } from "@/lib/utils/recursive-clone-children";
 import { tv, type VariantProps } from "@/lib/utils/tv";
 
-
 const COMPACT_BUTTON_ROOT_NAME = "CompactButtonRoot";
 const COMPACT_BUTTON_ICON_NAME = "CompactButtonIcon";
 

@@ -10,7 +10,6 @@ import type { PolymorphicComponentProps } from "@/lib/utils/polymorphic";
 import { recursiveCloneChildren } from "@/lib/utils/recursive-clone-children";
 import { tv, type VariantProps } from "@/lib/utils/tv";
 
-
 const HORIZONTAL_STEPPER_ROOT_NAME = "HorizontalStepperRoot";
 const HORIZONTAL_STEPPER_SEPARATOR_NAME = "HorizontalStepperSeparator";
 const HORIZONTAL_STEPPER_ITEM_NAME = "HorizontalStepperItem";

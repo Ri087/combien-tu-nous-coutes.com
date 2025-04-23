@@ -8,7 +8,6 @@ import type { PolymorphicComponentProps } from "@/lib/utils/polymorphic";
 import { recursiveCloneChildren } from "@/lib/utils/recursive-clone-children";
 import { tv, type VariantProps, type TVClassValue } from "@/lib/utils/tv";
 
-
 const ALERT_ROOT_NAME = "AlertRoot";
 const ALERT_ICON_NAME = "AlertIcon";
 const ALERT_CLOSE_ICON_NAME = "AlertCloseIcon";

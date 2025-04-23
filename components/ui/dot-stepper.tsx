@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils/cn";
 import { recursiveCloneChildren } from "@/lib/utils/recursive-clone-children";
 import { tv, type VariantProps } from "@/lib/utils/tv";
 
-
 const DOT_STEPPER_ROOT_NAME = "DotStepperRoot";
 const DOT_STEPPER_ITEM_NAME = "DotStepperItem";
 

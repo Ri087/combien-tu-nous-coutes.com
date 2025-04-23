@@ -6,7 +6,6 @@ import OtpInput, { OTPInputProps } from "react-otp-input";
 
 import { cn } from "@/lib/utils/cn";
 
-
 type OtpOptions = Omit<OTPInputProps, "renderInput">;
 
 type DigitInputProps = {

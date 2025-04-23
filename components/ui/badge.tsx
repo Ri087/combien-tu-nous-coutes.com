@@ -8,7 +8,6 @@ import type { PolymorphicComponentProps } from "@/lib/utils/polymorphic";
 import { recursiveCloneChildren } from "@/lib/utils/recursive-clone-children";
 import { tv, type VariantProps } from "@/lib/utils/tv";
 
-
 const BADGE_ROOT_NAME = "BadgeRoot";
 const BADGE_ICON_NAME = "BadgeIcon";
 const BADGE_DOT_NAME = "BadgeDot";
