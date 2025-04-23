@@ -1,9 +1,10 @@
 import { PROJECT } from "@/constants/project";
+
+import { Logomark } from "./common/logomark";
 import { Card } from "./components/card";
 import { EmailButton } from "./components/email-button";
-import { EmailFooter, EmailHeading, EmailText } from "./components/email-text";
 import { EmailLayout } from "./components/email-layout";
-import { Logomark } from "./common/logomark";
+import { EmailFooter, EmailHeading, EmailText } from "./components/email-text";
 
 interface ResetPasswordTemplateProps {
     name: string;

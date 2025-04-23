@@ -1,9 +1,10 @@
 import { PROJECT } from "@/constants/project";
+
+import { Logomark } from "./common/logomark";
 import { Card } from "./components/card";
 import { EmailButton } from "./components/email-button";
 import { EmailLayout } from "./components/email-layout";
 import { EmailFooter, EmailHeading, EmailText } from "./components/email-text";
-import { Logomark } from "./common/logomark";
 import { OtpDisplay } from "./components/otp-display";
 
 interface VerifyEmailTemplateProps {
