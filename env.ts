@@ -10,8 +10,8 @@ export const env = createEnv({
         RESEND_FROM_EMAIL: z.string().min(1),
         ARCJET_KEY: z.string().min(1),
 
-        UPSTASH_REDIS_REST_URL: z.string().min(1),
-        UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
+        KV_REST_API_URL: z.string().min(1),
+        KV_REST_API_TOKEN: z.string().min(1),
 
         BLOB_READ_WRITE_TOKEN: z.string().min(1),
         OPENAI_API_KEY: z.string().min(1),
