@@ -11,7 +11,6 @@ import * as Button from "@/components/ui/button";
 type ConsentStatus = "yes" | "no" | "undecided";
 
 export function cookieConsentGiven(): ConsentStatus {
-    // Only run on client since localStorage is not available on server
     if (typeof window === "undefined") return "undecided";
 
     const consent = localStorage.getItem("cookie_consent");
