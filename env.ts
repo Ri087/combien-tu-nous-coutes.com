@@ -12,7 +12,7 @@ export const env = createEnv({
         KV_REST_API_URL: z.string().min(1),
         KV_REST_API_TOKEN: z.string().min(1),
 
-        NODE_ENV: z.enum(["development", "production"]),
+        NODE_ENV: z.enum(["development", "production"]).optional(),
         VERCEL_URL: z.string().optional(),
         VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
     },
