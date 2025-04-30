@@ -46,25 +46,6 @@ actions:
            * Ensure changes follow the established patterns
            * Verify type safety and handle edge cases
            * Consider performance implications
-         - Handling Translation Key Issues:
-           * When encountering translation key linter errors:
-             1. First, fetch and review the i18n-best-practices rule
-             2. Check the translation files in lib/i18n/messages/
-             3. Only modify en-US.json, never modify other language files
-             4. Follow the existing namespace structure
-             5. Add missing translations in appropriate sections
-             6. Update component code to use correct translation keys
-           * For new features requiring translations:
-             1. Review similar features' translation patterns
-             2. Add all translations before implementing the feature
-             3. Group related translations under appropriate namespaces
-             4. Use descriptive, consistent key naming
-           * When fixing translation key errors:
-             1. Check if the key exists in a different namespace
-             2. If it does, update the code to use the correct namespace
-             3. If it doesn't, add the translation in the appropriate section
-             4. Always verify the full translation path exists
-             5. Test the changes with different languages
 
       1. Application Structure:
          - Base routes:
@@ -139,28 +120,7 @@ actions:
            * Prefer local state when possible
            * Use RSC with prefetching
 
-      7. Internationalization (i18n):
-         - Translation file location:
-           * Primary translation files in /lib/i18n/messages/
-           * Each language has its own file (en-US.json, fr-FR.json, etc.)
-         - Namespace organization:
-           * Use descriptive namespaces based on features/components
-           * Group related translations under the same namespace
-           * Prefer component-specific namespaces for UI components
-           * Use common namespace for shared strings
-         - Translation process:
-           * Extract text into appropriate namespace
-           * Keep symbols/punctuation outside translation strings when possible
-           * Handle dynamic content with placeholders
-           * Ensure consistent key naming
-           * Only edit the default locale, en-US (or follow linter errors)
-         - Component integration:
-           * Import useTranslations in client components
-           * Initialize with the appropriate namespace
-           * Use t() for all visible UI text
-           * Keep hardcoded text only for invariant content
-
-      8. Background Processing:
+      7. Background Processing:
          - Use trigger.dev for:
            * Email sending
            * File processing
@@ -247,30 +207,6 @@ examples:
         logout: () => set({ user: null })
       }));
     output: "Use Zustand only for necessary global state"
-
-  - input: |
-      // Bad: Hard-coded UI text
-      export function ProfileCard() {
-        return (
-          <div>
-            <h2>User Profile</h2>
-            <button>Save Changes</button>
-          </div>
-        );
-      }
-
-      // Good: Internationalized text
-      export function ProfileCard() {
-        const t = useTranslations("profileCard");
-
-        return (
-          <div>
-            <h2>{t("title")}</h2>
-            <button>{t("saveButton")}</button>
-          </div>
-        );
-      }
-    output: "Use translation functions for all user-facing text"
 
   - input: |
       // Bad: Installing dependencies directly
