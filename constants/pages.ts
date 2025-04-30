@@ -7,6 +7,14 @@ export const MARKETING_PAGES = {
     FAQ: "/faq",
 };
 
+export const AUTH_PAGES = {
+    SIGN_IN: "/sign-in",
+    SIGN_UP: "/sign-up",
+    FORGOT_PASSWORD: "/forgot-password",
+    RESET_PASSWORD: "/reset-password",
+    VERIFICATION: "/verification",
+};
+
 export const APPLICATION_PAGES = {
     DASHBOARD: "/dashboard",
 };
@@ -14,4 +22,5 @@ export const APPLICATION_PAGES = {
 export const PAGES = {
     ...MARKETING_PAGES,
     ...APPLICATION_PAGES,
+    ...AUTH_PAGES,
 };

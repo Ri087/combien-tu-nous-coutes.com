@@ -1,13 +1,14 @@
 import { Inter as FontSans } from "next/font/google";
 import localFont from "next/font/local";
-import { ThemeProvider } from "next-themes";
+import Script from "next/script";
 
-import Header from "@/components/header";
-import { NotificationProvider } from "@/components/ui/notification-provider";
-import { Provider as TooltipProvider } from "@/components/ui/tooltip";
+import { env } from "@/env";
 import { cn } from "@/lib/utils/cn";
 
+import { Providers } from "./providers";
+
 import type { Metadata } from "next";
+
 import "./globals.css";
 
 const inter = FontSans({
@@ -33,22 +34,22 @@ export default function RootLayout({
 }>) {
     return (
         <html
-            lang="en"
             suppressHydrationWarning
             className={cn(inter.variable, geistMono.variable, "antialiased")}
         >
+            {env.NEXT_PUBLIC_REACT_SCAN_DEVTOOLS === "true" &&
+                env.NODE_ENV === "development" && (
+                    <Script
+                        crossOrigin="anonymous"
+                        src="//unpkg.com/react-scan/dist/auto.global.js"
+                    />
+                )}
             <body className="bg-bg-white-0 text-text-strong-950">
-                <ThemeProvider attribute="class">
-                    <TooltipProvider>
-                        <div className="flex min-h-screen flex-col">
-                            <Header />
-                            <main className="flex flex-1 flex-col">
-                                {children}
-                            </main>
-                        </div>
-                    </TooltipProvider>
-                </ThemeProvider>
-                <NotificationProvider />
+                <Providers>
+                    <div className="flex min-h-screen flex-col">
+                        <main className="flex flex-1 flex-col">{children}</main>
+                    </div>
+                </Providers>
             </body>
         </html>
     );
