@@ -1,7 +1,8 @@
-import { db } from "@/db";
-import redis from "@/lib/redis";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+
+import { db } from "@/db";
+import redis from "@/lib/redis";
 
 export const auth = betterAuth({
     database: drizzleAdapter(db, {

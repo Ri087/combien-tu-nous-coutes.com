@@ -13,7 +13,6 @@ export const loggerMiddleware = middleware(async (opts) => {
     const start = Date.now();
     const requestId = Math.random().toString(36).substring(2, 10);
 
-    // Log the request
     console.log(
         chalk.cyan(`[${new Date().toISOString()}]`) +
             chalk.yellow(` #${requestId}`) +
@@ -23,19 +22,15 @@ export const loggerMiddleware = middleware(async (opts) => {
                 : "")
     );
 
-    // Execute the procedure
     const result = await next();
 
-    // Calculate duration
     const durationMs = Date.now() - start;
 
-    // Format duration with color based on response time
     let durationColor;
     if (durationMs < 100) durationColor = chalk.green;
     else if (durationMs < 500) durationColor = chalk.yellow;
     else durationColor = chalk.red;
 
-    // Log the response status
     if (result.ok) {
         console.log(
             chalk.cyan(`[${new Date().toISOString()}]`) +
