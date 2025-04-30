@@ -14,23 +14,23 @@ A streamlined [Next.js](https://nextjs.org) starter template optimized for quick
 
 ## Features
 
--   🔸 Lightning-fast setup for lead generation pages
--   🔸 AlignUI design tokens for consistent branding
--   🔸 Responsive layouts with Tailwind CSS
--   🔸 Pre-built conversion-focused components
--   🔸 Dark/light mode toggle included
--   🔸 Ready for analytics integration
--   🔸 Optimized for performance
--   🔸 Minimal dependencies for quick iteration
+- 🔸 Lightning-fast setup for lead generation pages
+- 🔸 AlignUI design tokens for consistent branding
+- 🔸 Responsive layouts with Tailwind CSS
+- 🔸 Pre-built conversion-focused components
+- 🔸 Dark/light mode toggle included
+- 🔸 Ready for analytics integration
+- 🔸 Optimized for performance
+- 🔸 Minimal dependencies for quick iteration
 
 ## Use Cases
 
--   Landing pages for lead capture
--   Email newsletter sign-up forms
--   Webinar/event registration pages
--   Product concept validation
--   Simple feature demonstrations
--   Micro-sites for marketing campaigns
+- Landing pages for lead capture
+- Email newsletter sign-up forms
+- Webinar/event registration pages
+- Product concept validation
+- Simple feature demonstrations
+- Micro-sites for marketing campaigns
 
 ## Getting Started
 
@@ -70,9 +70,9 @@ pnpm dev
 
 This runs:
 
--   Next.js dev server with Turbo
--   Database management studio
--   Email preview server (at http://localhost:3001)
+- Next.js dev server with Turbo
+- Database management studio
+- Email preview server (at http://localhost:3001)
 
 **Additional Commands**
 
