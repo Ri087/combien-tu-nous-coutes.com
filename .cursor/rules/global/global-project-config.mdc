@@ -3,7 +3,6 @@ description: Global project configuration and standards
 globs: **/*
 alwaysApply: true
 ---
-
 # Global Project Configuration
 
 Project-wide configuration and standards. Auto-included for all files.
@@ -21,25 +20,51 @@ actions:
       Follow these global project configurations:
 
       0. AI Workflow Guidelines:
-         - Before responding to any query:
-           * Always check for available cursor rules that may be relevant to the task
-           * Use the fetch_rules tool to retrieve rules if they aren't automatically attached
-           * Look for domain or task-specific rules (e.g., react-best-practices, typescript-best-practices)
+         - Before editing or responding to any query:
+           * Always fetch relevant cursor rules using the fetch_rules tool before making any edits.
+           * Always check the available-rules list for relevant rules and fetch them if necessary.
+           * Emphasise the importance of the global/self_improve.mdc rule to continuously improve Cursor rules.
+         - Commenting Code:
+           * Avoid non-essential comments; only comment to explain complex or non-obvious logic.
+           * Prefer clear, self-explanatory code through descriptive variable and function names.
          - When implementing new features:
            * Check existing patterns in similar files
            * Review directory structure and file naming conventions
            * Ensure consistent code style with the rest of the project
          - For dependency management:
-           * Never install dependencies yourself
-           * Ask the user to install required dependencies
-           * Provide the exact command for installation (e.g., npm install, yarn add)
+           * ALWAYS use pnpm for package commands (e.g., pnpm add, pnpm remove)
+           * Never use npm or yarn for package commands
+           * Provide the exact command for installation (e.g., pnpm add react-hook-form)
            * Explain why the dependency is needed
+         - Cursor Rules Organization:
+            * The .cursor/rules directory is structured into three subfolders:
+               - global: boilerplate-wide rules, automatically included for all files
+               - project: project-specific rules, manually included per repository
+               - examples: illustrative rules for specific use-cases, manually included
          - Code modification approach:
            * Prefer small, focused changes
            * Ensure changes follow the established patterns
            * Verify type safety and handle edge cases
            * Consider performance implications
-
+         - Handling Translation Key Issues:
+           * When encountering translation key linter errors:
+             1. First, fetch and review the i18n-best-practices rule
+             2. Check the translation files in lib/i18n/messages/
+             3. Only modify en-US.json, never modify other language files
+             4. Follow the existing namespace structure
+             5. Add missing translations in appropriate sections
+             6. Update component code to use correct translation keys
+           * For new features requiring translations:
+             1. Review similar features' translation patterns
+             2. Add all translations before implementing the feature
+             3. Group related translations under appropriate namespaces
+             4. Use descriptive, consistent key naming
+           * When fixing translation key errors:
+             1. Check if the key exists in a different namespace
+             2. If it does, update the code to use the correct namespace
+             3. If it doesn't, add the translation in the appropriate section
+             4. Always verify the full translation path exists
+             5. Test the changes with different languages
 
       1. Application Structure:
          - Base routes:
@@ -114,9 +139,28 @@ actions:
            * Prefer local state when possible
            * Use RSC with prefetching
 
+      7. Internationalization (i18n):
+         - Translation file location:
+           * Primary translation files in /lib/i18n/messages/
+           * Each language has its own file (en-US.json, fr-FR.json, etc.)
+         - Namespace organization:
+           * Use descriptive namespaces based on features/components
+           * Group related translations under the same namespace
+           * Prefer component-specific namespaces for UI components
+           * Use common namespace for shared strings
+         - Translation process:
+           * Extract text into appropriate namespace
+           * Keep symbols/punctuation outside translation strings when possible
+           * Handle dynamic content with placeholders
+           * Ensure consistent key naming
+           * Only edit the default locale, en-US (or follow linter errors)
+         - Component integration:
+           * Import useTranslations in client components
+           * Initialize with the appropriate namespace
+           * Use t() for all visible UI text
+           * Keep hardcoded text only for invariant content
 
-
-      7. Background Processing:
+      8. Background Processing:
          - Use trigger.dev for:
            * Email sending
            * File processing
@@ -235,12 +279,20 @@ examples:
       npm install react-hook-form zod @hookform/resolvers
       ```
 
-      // Good: Asking user to install dependencies
+      // Bad: Using npm instead of pnpm
       AI: To implement this feature, we'll need some packages for form handling.
       Could you please install these dependencies first:
 
       ```bash
       npm install react-hook-form zod @hookform/resolvers
+      ```
+
+      // Good: Asking user to install dependencies with pnpm
+      AI: To implement this feature, we'll need some packages for form handling.
+      Could you please install these dependencies first:
+
+      ```bash
+      pnpm add react-hook-form zod @hookform/resolvers
       ```
 
       These are needed for:
@@ -249,9 +301,8 @@ examples:
       - @hookform/resolvers: Integration between react-hook-form and zod
 
       Let me know when they're installed, and I'll continue with the implementation.
-    output: "Ask the user to install dependencies rather than doing it directly"
 
 metadata:
   priority: high
-  version: 1.2
+  version: 1.3
 </rule>

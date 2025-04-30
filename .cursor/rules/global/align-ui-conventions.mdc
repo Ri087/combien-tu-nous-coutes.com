@@ -1,6 +1,6 @@
 ---
 description: Conventions for using AlignUI components and creating custom components
-globs: components/**/*.tsx, hooks/**/*.ts
+globs: **/*.tsx
 alwaysApply: false
 ---
 
@@ -32,6 +32,18 @@ actions:
       - Client components should end with `.client.tsx` suffix
       - Server components should use regular `.tsx` extension
       - Utility files should use descriptive, action-oriented names
+
+      ## Tailwind Configuration and Design System
+      - **REQUIRED**: Read `tailwind.config.ts` before making any UI changes
+      - All color tokens, text sizes, shadows, and border radii are defined in `tailwind.config.ts`
+      - Use ONLY the color and size classes specified in the tailwind configuration
+      - The design system defines specific tokens for:
+        - Colors: primary, text, bg, stroke, information, warning, error, success, etc.
+        - Text sizes: label-xs to label-xl, paragraph-xs to paragraph-xl, etc.
+        - Shadows: regular-xs to regular-md, button-*-focus, fancy-buttons-*, etc.
+        - Border radii: Various sizes including custom ones like 10, 20
+      - Follow the token system for consistent styling instead of using arbitrary values
+      - Prefer semantic color tokens (e.g., `text-error-base`) over direct color values
 
       ## Using AlignUI Components
       1. Always import using namespace imports:
@@ -166,10 +178,11 @@ actions:
       - Keep components presentational when possible
 
       4. Styling:
-      - Use Tailwind classes
-      - Follow AlignUI color tokens
+      - Use Tailwind classes as defined in `tailwind.config.ts`
+      - Follow AlignUI color tokens from the design system
       - Support dark mode with `dark:` variants
       - Use motion components for animations
+      - Always reference the tailwind configuration for available classes
 
       5. Accessibility:
       - Use semantic HTML
@@ -220,9 +233,15 @@ examples:
           />
         </Input.Wrapper>
       </Input.Root>
+
+      // Bad: Using arbitrary colors not from the design system
+      <div className="text-blue-500 bg-gray-100">Content</div>
+
+      // Good: Using design system color tokens
+      <div className="text-primary-base bg-bg-weak-50">Content</div>
     output: "Examples of correct and incorrect component implementations"
 
 metadata:
   priority: high
-  version: 1.0
+  version: 1.1
 </rule>

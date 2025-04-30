@@ -1,0 +1,96 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+<rule>
+name: prd_exclude_existing_features
+description: Prevent PRD tasks from duplicating features already provided by this boilerplate
+globs: ["**/*"]
+actions:
+  - type: suggest
+    message: |-
+      # PRD Constraints for Next.js Boilerplate
+
+      When creating or parsing PRDs for this project, be aware that this is a **boilerplate** with many features already implemented. PRDs should focus on extending or customizing these existing systems rather than reimplementing them.
+
+      ## Already Implemented Features (DO NOT INCLUDE IN PRDs)
+
+      ### Authentication and Users
+      - ✅ Complete authentication system using Better Auth
+      - ✅ Sign-in and sign-up flows with email/password
+      - ✅ Social authentication options (preconfigured)
+      - ✅ Two-factor authentication (2FA) with confirmation flow
+      - ✅ Email verification system
+      - ✅ Forgot and reset password functionality
+      - ✅ Waitlist system for user invitations
+      - ✅ User access management with whitelist plugin
+      - ✅ User profile and account settings (name, email, avatar)
+      - ✅ User banning/moderation capabilities
+      - ✅ Passkey support
+
+      ### Organization Management
+      - ✅ Company/organization switching functionality
+      - ✅ Organization selector in sidebar
+      - ✅ Multi-organization user accounts
+
+      ### UI Components
+      - ✅ Complete AlignUI component library (40+ components)
+      - ✅ Dark/light mode with proper theming
+      - ✅ Mobile-responsive layouts
+      - ✅ Notifications system
+      - ✅ Modals, drawers, and dialogs
+      - ✅ Form components (inputs, selects, checkboxes, etc.)
+      - ✅ Navigation components (sidebar, header, mobile menu)
+      - ✅ User dropdown menu
+      - ✅ All basic UI elements (buttons, tags, badges, cards, etc.)
+      - ✅ Data tables with filtering and pagination
+      - ✅ Loading states and skeletons
+
+      ### Infrastructure and Backend
+      - ✅ PostgreSQL database setup with Drizzle ORM
+      - ✅ Database schema for users, accounts, verification
+      - ✅ Redis integration for caching
+      - ✅ Email service with Resend and React Email templates
+      - ✅ tRPC type-safe API endpoints
+      - ✅ Background job processing with Trigger.dev
+      - ✅ Real-time updates with Pusher
+      - ✅ Payment processing with Stripe
+      - ✅ Analytics with PostHog
+      - ✅ Rate limiting and protection with Arcjet
+
+      ### Application Structure
+      - ✅ App router with proper route groups
+      - ✅ Internationalization (i18n) setup
+      - ✅ State management with Zustand
+      - ✅ Form handling with react-hook-form
+      - ✅ Schema validation with Zod
+      - ✅ Search parameters handling with Nuqs
+      - ✅ SEO optimization
+
+      ## What PRDs SHOULD Focus On
+
+      PRDs should focus on:
+      1. **Business-specific features** that extend the platform
+      2. **Customizations** to existing components for specific use cases
+      3. **New content or pages** using existing infrastructure
+      4. **Domain-specific logic** building on the existing architecture
+      5. **Integration with external services** beyond those already included
+
+      ## How to Reference Existing Features
+
+      When extending existing features, use explicit language in PRDs:
+      - "Extend the existing user profile to include..." (not "Create user profiles")
+      - "Customize the authentication flow to add..." (not "Implement authentication")
+      - "Create a new dashboard view using existing UI components" (not "Build UI components for dashboards")
+
+      ## Examples
+
+      ❌ **Incorrect PRD Task**: "Implement user authentication with login and signup pages"
+      ✅ **Correct PRD Task**: "Add custom fields to the signup form for industry-specific information"
+
+      ❌ **Incorrect PRD Task**: "Create a company switcher component"
+      ✅ **Correct PRD Task**: "Extend the company switcher to display company roles and permissions"
+
+      ❌ **Incorrect PRD Task**: "Build a PostgreSQL database with user tables"
+      ✅ **Correct PRD Task**: "Create new domain-specific tables that relate to existing user data"

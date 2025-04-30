@@ -1,0 +1,547 @@
+---
+description: Best practices for using Drizzle ORM with PostgreSQL
+globs: 
+alwaysApply: false
+---
+
+# Drizzle ORM Best Practices
+
+Standards for using Drizzle ORM with PostgreSQL. Auto-included for TypeScript and TSX files in db directories.
+
+<rule>
+name: drizzle_orm_best_practices
+description: Best practices for using Drizzle ORM with PostgreSQL. Auto-included for TypeScript and TSX files in db directories.
+globs: ["**/db/*.{ts,tsx}", "**/server/**/*.{ts,tsx}"]
+filters:
+  - type: file_extension
+    pattern: "\\.(ts|tsx)$"
+  - type: path
+    pattern: ".*/(?:db|server)/.*"
+actions:
+  - type: suggest
+    message: |
+      Follow these Drizzle ORM best practices:
+
+      1. Schema Definition:
+         - Use proper column types
+         - Export types for each schema
+         - Define explicit relationships
+         - Use proper naming conventions
+         - Use ULID for ID fields with $defaultFn:
+           ```typescript
+           // Bad: Using serial or UUID without $defaultFn
+           id: serial('id').primaryKey(),
+           // or
+           id: uuid('id').primaryKey().defaultRandom(),
+
+           // Good: Using ULID with $defaultFn
+           import { ulid } from "ulid";
+
+           id: text("id")
+              .primaryKey()
+              .$defaultFn(() => ulid()),
+           ```
+         - Use `.$type<T>()` for JSON field type definitions and for any column that stores a value with a TypeScript type (enums, unions, objets, etc.):
+           ```typescript
+           // Bad: Column without type information
+           vote: varchar("vote", { length: 8 }).notNull(),
+
+           // Good: Column with explicit type
+           vote: varchar("vote", { length: 8 }).notNull().$type<MessageFeedbackVote>(),
+
+           // Good: JSON field with type definition
+           settings: json('settings').$type<UserSettings>()
+           ```
+         - Avoid using deprecated third argument in pgTable:
+           ```typescript
+           // Bad: Using deprecated third argument
+           export const users = pgTable('users', {
+             // columns
+           }, (table) => {
+             return {
+               uniqueIdx: uniqueIndex('unique_idx').on(table.email)
+             };
+           });
+
+           // Good: Using the new API without third argument
+           export const users = pgTable('users', {
+             // columns
+           });
+
+           // Create indexes separately
+           export const usersEmailIndex = uniqueIndex('users_email_idx').on(users.email);
+           ```
+
+      2. Type Exports:
+         - Export table types using typeof
+         - Export inferred types for each table
+         - Export relationship types
+         - Use proper type naming conventions
+
+      3. Relationships:
+         - Define explicit relationships using references:
+           ```typescript
+           // Good: One-to-many relationship
+           export const users = pgTable('users', {
+             id: serial('id').primaryKey(),
+             teamId: integer('team_id').references(() => teams.id, { onDelete: 'cascade' })
+           });
+
+           // Good: Many-to-many relationship
+           export const userToProjects = pgTable('user_to_projects', {
+             userId: integer('user_id').references(() => users.id),
+             projectId: integer('project_id').references(() => projects.id),
+             // Make the combination of both IDs the primary key
+             $$primaryKey: { columns: [userId, projectId] }
+           });
+
+           // Good: One-to-one relationship
+           export const users = pgTable('users', {
+             id: serial('id').primaryKey(),
+             // Other columns
+           });
+
+           export const profiles = pgTable('profiles', {
+             id: serial('id').primaryKey(),
+             userId: integer('user_id').notNull().unique().references(() => users.id, { onDelete: 'cascade' })
+           });
+           ```
+         - Implement relations setup in queries:
+           ```typescript
+           import { relations } from 'drizzle-orm';
+
+           export const usersRelations = relations(users, ({ one, many }) => ({
+             profile: one(profiles, {
+               fields: [users.id],
+               references: [profiles.userId],
+             }),
+             posts: many(posts),
+             team: one(teams, {
+               fields: [users.teamId],
+               references: [teams.id],
+             }),
+           }));
+
+           export const teamsRelations = relations(teams, ({ many }) => ({
+             users: many(users),
+           }));
+           ```
+
+      4. Query Building:
+         - Use type-safe queries
+         - Implement proper joins
+         - Use prepared statements
+         - Handle complex queries properly
+
+      5. Performance & Security:
+         - Use proper indexes
+         - Implement query optimization
+         - Use parameterized queries
+         - Handle sensitive data properly
+
+      6. Validators:
+         - Place validators unrelated to database schemas in `/validators` folder
+         - Use Drizzle Zod for schema validation:
+           ```typescript
+           import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+
+           // Generate Zod schema from Drizzle schema
+           export const insertUserSchema = createInsertSchema(users);
+           export const selectUserSchema = createSelectSchema(users);
+
+           // Extend generated schema with additional validations
+           export const extendedUserSchema = insertUserSchema.extend({
+             email: z.string().email("Invalid email format"),
+             password: z.string().min(8, "Password must be at least 8 characters"),
+           });
+
+           // For validators unrelated to DB schemas, create them in /validators folder
+           // /validators/contactForm.ts
+           export const contactFormSchema = z.object({
+             name: z.string().min(2, "Name must be at least 2 characters"),
+             email: z.string().email("Invalid email format"),
+             message: z.string().min(10, "Message must be at least 10 characters"),
+           });
+           ```
+
+      7. Indexing Best Practices:
+         - When to add indexes:
+           * Add indexes on columns used frequently in WHERE clauses
+           * Add indexes on columns used in ORDER BY or GROUP BY
+           * Add indexes on foreign key columns
+           * Avoid over-indexing as it slows down writes and increases storage
+         - Types of indexes to use:
+           ```typescript
+           // Primary key index (automatically created)
+           id: serial('id').primaryKey(),
+
+           // Unique index for emails
+           export const usersEmailIndex = uniqueIndex('users_email_idx').on(users.email);
+
+           // Multi-column index for composite lookups
+           export const orderDateCustomerIndex = index('order_date_customer_idx')
+             .on(orders.orderDate, orders.customerId);
+
+           // Partial index (with condition)
+           export const activeUsersIndex = index('active_users_idx', {
+             where: eq(users.isActive, true)
+           }).on(users.lastLogin);
+
+           // Full-text search index (for text columns)
+           export const productsSearchIndex = index('products_search_idx')
+             .using('gin')
+             .on(sql`to_tsvector('english', ${products.description})`);
+           ```
+         - Naming conventions for indexes:
+           * Use format: table_column(s)_idx
+           * For unique indexes: table_column(s)_unique_idx
+           * For multi-column: table_column1_column2_idx
+
+      8. File Organization:
+         - Place schemas in `/server/db/schema` directory:
+           ```
+           /server
+           ├── db
+           │   ├── index.ts        # Export db client
+           │   ├── schema
+           │   │   ├── index.ts    # Export all schemas
+           │   │   ├── users.ts    # User-related schemas
+           │   │   ├── posts.ts    # Post-related schemas
+           │   │   └── products.ts # Product-related schemas
+           │   └── migrations      # Migration files
+           ```
+         - Group related tables in the same file
+         - Export everything through index.ts files for cleaner imports
+         - Use the following pattern for each schema file:
+           ```typescript
+           // users.ts
+           import { pgTable, serial, text, varchar } from 'drizzle-orm/pg-core';
+           import { relations, index } from 'drizzle-orm';
+           import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+
+           // 1. Define tables
+           export const users = pgTable('users', { /* columns */ });
+           export const profiles = pgTable('profiles', { /* columns */ });
+
+           // 2. Define relationships
+           export const usersRelations = relations(users, ({ one }) => ({ /* relations */ }));
+           export const profilesRelations = relations(profiles, ({ one }) => ({ /* relations */ }));
+
+           // 3. Define indexes
+           export const usersEmailIndex = index('users_email_idx').on(users.email);
+
+           // 4. Export types
+           export type User = typeof users.$inferSelect;
+           export type NewUser = typeof users.$inferInsert;
+           export type Profile = typeof profiles.$inferSelect;
+           export type NewProfile = typeof profiles.$inferInsert;
+
+           // 5. Export validators
+           export const insertUserSchema = createInsertSchema(users);
+           export const selectUserSchema = createSelectSchema(users);
+           ```
+
+      9. Integration with tRPC:
+         - Creating bridges between Drizzle and tRPC:
+           ```typescript
+           // server/routers/users/queries/getUser.ts
+           import { db } from '@/server/db';
+           import { users } from '@/server/db/schema';
+           import { eq } from 'drizzle-orm';
+
+           export async function getUser({
+             userId,
+             db
+           }: {
+             userId: string,
+             db: typeof db
+           }) {
+             // Use Drizzle queries inside tRPC procedure implementations
+             return await db.query.users.findFirst({
+               where: eq(users.id, userId),
+               with: {
+                 profile: true,
+                 posts: true
+               }
+             });
+           }
+
+           // server/routers/users/router.ts
+           import { router, protectedProcedure } from '@/server/trpc';
+           import { getUser } from './queries/getUser';
+           import { getUserInputSchema } from './validators';
+
+           export const usersRouter = router({
+             getUser: protectedProcedure
+               .input(getUserInputSchema)
+               .query(async ({ ctx, input }) => {
+                 const { db } = ctx;
+                 // Pass db from context to the implementation function
+                 return await getUser({ userId: input.userId, db });
+               })
+           });
+           ```
+         - Consistent error handling:
+           ```typescript
+           export async function createUser({
+             input,
+             db
+           }: {
+             input: NewUser,
+             db: typeof db
+           }) {
+             try {
+               // Attempt to create user with Drizzle
+               const [user] = await db.insert(users)
+                 .values(input)
+                 .returning();
+               return { success: true, user };
+             } catch (error) {
+               // Handle specific database errors
+               if (error.code === '23505') { // Unique violation
+                 throw new TRPCError({
+                   code: 'CONFLICT',
+                   message: 'User with this email already exists'
+                 });
+               }
+               // Re-throw other errors for tRPC to handle
+               throw new TRPCError({
+                 code: 'INTERNAL_SERVER_ERROR',
+                 message: 'Failed to create user'
+               });
+             }
+           }
+           ```
+         - Type safety between Drizzle and tRPC:
+           ```typescript
+           // Leverage Drizzle's type system with tRPC
+           import { users } from '@/server/db/schema';
+           import { z } from 'zod';
+           import { createInsertSchema } from 'drizzle-zod';
+
+           // Create Zod schema from Drizzle schema for tRPC input validation
+           export const userInputSchema = createInsertSchema(users).omit({
+             id: true, // Remove auto-generated fields
+             createdAt: true
+           });
+
+           // Use in tRPC procedure
+           export const createUser = protectedProcedure
+             .input(userInputSchema)
+             .mutation(async ({ ctx, input }) => {
+               // Input is fully typed from Drizzle schema
+               return await createUserImpl({ input, db: ctx.db });
+             });
+           ```
+
+examples:
+  - input: |
+      // Bad: Schema without type exports and relationships
+      export const users = pgTable('users', {
+        id: serial('id').primaryKey(),
+        name: text('name'),
+        email: varchar('email', { length: 255 })
+      });
+
+      // Good: Schema with type exports and relationships
+      import { InferModel } from 'drizzle-orm';
+      import { pgTable, serial, text, varchar, foreignKey } from 'drizzle-orm/pg-core';
+
+      export const users = pgTable('users', {
+        id: serial('id').primaryKey(),
+        name: text('name').notNull(),
+        email: varchar('email', { length: 255 }).notNull().unique(),
+        teamId: integer('team_id').references(() => teams.id, { onDelete: 'cascade' })
+      });
+
+      export const teams = pgTable('teams', {
+        id: serial('id').primaryKey(),
+        name: text('name').notNull()
+      });
+
+      // Type exports
+      export type User = InferModel<typeof users>;
+      export type NewUser = InferModel<typeof users, 'insert'>;
+      export type Team = InferModel<typeof teams>;
+      export type NewTeam = InferModel<typeof teams, 'insert'>;
+    output: "Define schemas with proper type exports and relationships"
+
+  - input: |
+      // Bad: Not using relationships in queries
+      const user = await db.select().from(users).where(eq(users.id, userId));
+
+      // Good: Using relationships in queries
+      const userWithTeam = await db.select({
+        id: users.id,
+        name: users.name,
+        team: {
+          id: teams.id,
+          name: teams.name
+        }
+      })
+      .from(users)
+      .leftJoin(teams, eq(users.teamId, teams.id))
+      .where(eq(users.id, userId));
+    output: "Use proper relationship queries with type safety"
+
+  - input: |
+      // Bad: JSON field without type information
+      export const users = pgTable('users', {
+        id: serial('id').primaryKey(),
+        settings: json('settings')
+      });
+
+      // Good: JSON field with type definition
+      interface UserSettings {
+        theme: 'light' | 'dark';
+        notifications: boolean;
+        language: string;
+      }
+
+      export const users = pgTable('users', {
+        id: serial('id').primaryKey(),
+        settings: json('settings').$type<UserSettings>()
+      });
+    output: "Define type information for JSON fields using .$type<T>()"
+
+  - input: |
+      // Bad: Not using drizzle-zod for validation
+      export const createUserSchema = z.object({
+        name: z.string().min(2),
+        email: z.string().email(),
+        age: z.number().min(18)
+      });
+
+      // Good: Using drizzle-zod for validation
+      import { createInsertSchema } from 'drizzle-zod';
+
+      export const users = pgTable('users', {
+        id: serial('id').primaryKey(),
+        name: text('name').notNull(),
+        email: varchar('email', { length: 255 }).notNull().unique(),
+        age: integer('age').notNull()
+      });
+
+      // Generate base schema
+      export const insertUserSchema = createInsertSchema(users);
+
+      // Extend with additional validations
+      export const createUserSchema = insertUserSchema.extend({
+        name: z.string().min(2, "Name must be at least 2 characters"),
+        email: z.string().email("Invalid email format"),
+        age: z.number().min(18, "Must be at least 18 years old")
+      });
+    output: "Use drizzle-zod to generate and extend validation schemas from database tables"
+
+  - input: |
+      // Bad: Not using indexes for frequently queried columns
+      export const users = pgTable('users', {
+        id: serial('id').primaryKey(),
+        email: varchar('email', { length: 255 }).notNull().unique(),
+        status: varchar('status', { length: 50 }).notNull()
+      });
+
+      // Good: Adding proper indexes for query optimization
+      export const users = pgTable('users', {
+        id: serial('id').primaryKey(),
+        email: varchar('email', { length: 255 }).notNull().unique(),
+        status: varchar('status', { length: 50 }).notNull()
+      });
+
+      // Create a regular index for frequent status filtering
+      export const usersStatusIndex = index('users_status_idx').on(users.status);
+
+      // Create a composite index for queries that filter by status and sort by created_at
+      export const usersStatusCreatedAtIndex = index('users_status_created_at_idx')
+        .on(users.status, users.createdAt);
+    output: "Add appropriate indexes for frequent query patterns"
+
+  - input: |
+      // Bad: Disorganized schema files and exports
+      // db/users.ts
+      export const users = pgTable('users', {
+        // columns
+      });
+      // db/profiles.ts
+      export const profiles = pgTable('profiles', {
+        // columns
+      });
+
+      // Good: Organized schema files with clear structure
+      // server/db/schema/index.ts
+      export * from './users';
+      export * from './posts';
+
+      // server/db/schema/users.ts
+      import { pgTable, serial, text, varchar } from 'drizzle-orm/pg-core';
+      import { relations, index } from 'drizzle-orm';
+
+      // 1. Table definitions
+      export const users = pgTable('users', {
+        id: serial('id').primaryKey(),
+        email: varchar('email', { length: 255 }).notNull(),
+        name: text('name').notNull()
+      });
+
+      // 2. Relationships
+      export const usersRelations = relations(users, ({ many }) => ({
+        posts: many(posts)
+      }));
+
+      // 3. Indexes
+      export const usersEmailIndex = index('users_email_idx').on(users.email);
+
+      // 4. Type exports
+      export type User = typeof users.$inferSelect;
+      export type NewUser = typeof users.$inferInsert;
+    output: "Organize schema files with clear structure and exports"
+
+  - input: |
+      // Bad: Disconnected Drizzle and tRPC logic
+      // tRPC procedure with direct database access
+      const getUserPosts = protectedProcedure
+        .input(z.object({ userId: z.string() }))
+        .query(async ({ ctx, input }) => {
+          const posts = await ctx.db.select()
+            .from(posts)
+            .where(eq(posts.userId, input.userId));
+          return posts;
+        });
+
+      // Good: Bridging Drizzle with tRPC using clean implementation functions
+      // server/routers/posts/queries/getUserPosts.ts
+      export async function getUserPosts({
+        userId,
+        db
+      }: {
+        userId: string,
+        db: DB
+      }) {
+        return await db.query.posts.findMany({
+          where: eq(posts.userId, userId),
+          orderBy: [desc(posts.createdAt)],
+          with: {
+            author: {
+              columns: {
+                id: true,
+                name: true
+              }
+            }
+          }
+        });
+      }
+
+      // server/routers/posts/router.ts
+      export const postsRouter = router({
+        getUserPosts: protectedProcedure
+          .input(z.object({ userId: z.string() }))
+          .query(async ({ ctx, input }) => {
+            return await getUserPosts({ userId: input.userId, db: ctx.db });
+          })
+      });
+    output: "Create a clean bridge between Drizzle and tRPC with implementation functions"
+
+metadata:
+  priority: high
+  version: 1.2
+</rule>

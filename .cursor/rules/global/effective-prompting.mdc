@@ -1,6 +1,6 @@
 ---
 description: Best practices for creating effective prompts for Large Language Models
-globs: 
+globs:
 alwaysApply: false
 ---
 # Effective Prompting Guide
@@ -54,7 +54,7 @@ actions:
       - **Behavioral Guidelines**: Define how the model should interact
       - **Constraints & Guardrails**: Establish what is not allowed
       - **Knowledge References**: Indicate information sources and citation methods
-      
+
       ### Organizational Structure:
       - Use clear hierarchical headings (H1, H2, H3)
       - Group related instructions together in sections
@@ -105,16 +105,16 @@ actions:
       ### Example Structure:
       ```
       ## [Category Name] Instructions
-      
+
       [Brief description of this category's purpose]
-      
+
       ### Required Components
       - [Component 1]
       - [Component 2]
-      
+
       ### Formatting Guidelines
       [Specific formatting rules for this category]
-      
+
       ### Examples
       [Example 1]
       [Example 2]
@@ -229,19 +229,19 @@ actions:
       ```
       # Identity and Expertise
       You are [Name], an expert software developer specialized in [languages/domains].
-      
+
       # Technical Knowledge Domains
       - Languages: [List of programming languages with proficiency levels]
       - Frameworks: [List of frameworks with proficiency levels]
       - Development Tools: [List of tools with proficiency levels]
       - Architecture Patterns: [List of patterns you should use]
-      
+
       # Code Quality Standards
       - Follow [specific style guides] for each language
       - Prioritize [specific qualities: readability, performance, security]
       - Implement error handling using [specific approaches]
       - Use [specific naming conventions] for variables and functions
-      
+
       # Response Protocol
       1. First analyze the problem completely before providing a solution
       2. Think through edge cases and potential issues
@@ -249,7 +249,7 @@ actions:
       4. Provide code with appropriate comments
       5. Explain key decisions in your implementation
       6. Suggest testing approaches when relevant
-      
+
       # Limitations and Guardrails
       - Never generate [specific harmful/insecure patterns]
       - Always include [security considerations]
@@ -319,12 +319,12 @@ examples:
       - React, Vue, Angular, Svelte
       - HTML5, CSS3, JavaScript/TypeScript
       - Modern CSS frameworks (Tailwind, Bootstrap)
-      
+
       ## Backend Development
       - Node.js, Python, Java, Go
       - Express, Django, Spring Boot
       - REST API and GraphQL design
-      
+
       ## Database Systems
       - SQL (PostgreSQL, MySQL)
       - NoSQL (MongoDB, Firebase)
@@ -354,15 +354,15 @@ examples:
         onClick: () => void;
         variant?: 'primary' | 'secondary';
       }
-      
-      const Button: React.FC<ButtonProps> = ({ 
-        label, 
-        onClick, 
-        variant = 'primary' 
+
+      const Button: React.FC<ButtonProps> = ({
+        label,
+        onClick,
+        variant = 'primary'
       }) => {
         return (
-          <button 
-            className={`btn btn-${variant}`} 
+          <button
+            className={`btn btn-${variant}`}
             onClick={onClick}
           >
             {label}
@@ -379,7 +379,7 @@ examples:
       // Poor system and user prompt combination
       "System: You are a helpful assistant.
       User: Analyze this data."
-      
+
       // Better system and user prompt combination
       "System: You are DataAnalyst, an AI specialized in financial data analysis with expertise in market trends, portfolio optimization, and risk assessment. Follow these guidelines:
       - Always start by assessing data quality and completeness
@@ -390,7 +390,7 @@ examples:
       - Format all numeric data with proper notation (e.g., $10.5M, 12.3%)
       - Structure responses with clear sections: Summary, Detailed Analysis, Recommendations
       - Always consider both short and long-term implications
-      
+
       User: Analyze the attached quarterly performance data for our tech stock portfolio. Focus on:
       1. Overall performance relative to the S&P 500
       2. Top and bottom performers with potential reasons
@@ -421,7 +421,7 @@ examples:
       - Implement proper error handling
       - Write code that emphasizes readability and maintainability
       - Use semantic variable/function naming
-      
+
       # Response Protocol
       When working on code:
       1. Use <Thinking> tags to analyze the problem step-by-step
@@ -436,13 +436,13 @@ examples:
       4. Include inline comments for complex logic
       5. Explain key decisions and potential alternatives
       6. Address edge cases and potential issues
-      
+
       # Context Management
       - Remember we are working on the same codebase throughout a session
       - Reference previously discussed files and components by name
       - Be aware of the project structure and dependencies
       - Ask for clarification when requirements are ambiguous
-      
+
       # Task Handling
       For complex tasks:
       1. Break them down into smaller, manageable subtasks

@@ -1,0 +1,123 @@
+---
+description: Guidelines for continuously improving Cursor rules based on emerging code patterns and best practices.
+globs: **/*
+alwaysApply: true
+---
+# Self-Improvement for Cursor Rules
+
+Guidelines for continuously improving Cursor rules based on emerging code patterns and best practices.
+
+<rule>
+name: self_improve
+description: Guidelines for continuously improving Cursor rules based on emerging code patterns and best practices. Auto-included for all rule files.
+globs: [".cursor/rules/**/*.mdc"]
+filters:
+  - type: file_extension
+    pattern: "\\.mdc$"
+actions:
+  - type: suggest
+    message: |
+      # Self-Improvement for Cursor Rules
+
+      ## Rule Improvement Triggers
+      - New code patterns not covered by existing rules
+      - Repeated similar implementations across files
+      - Common error patterns that could be prevented
+      - New libraries or tools being used consistently
+      - Emerging best practices in the codebase
+
+      ## Analysis Process
+      - Compare new code with existing rules
+      - Identify patterns that should be standardized
+      - Look for references to external documentation
+      - Check for consistent error handling patterns
+      - Monitor test patterns and coverage
+
+      ## Rule Updates
+
+      ### Add New Rules When:
+      - A new technology/pattern is used in 3+ files
+      - Common bugs could be prevented by a rule
+      - Code reviews repeatedly mention the same feedback
+      - New security or performance patterns emerge
+
+      ### Modify Existing Rules When:
+      - Better examples exist in the codebase
+      - Additional edge cases are discovered
+      - Related rules have been updated
+      - Implementation details have changed
+
+      ## Example Pattern Recognition
+      ```typescript
+      // If you see repeated patterns like:
+      const data = await prisma.user.findMany({
+        select: { id: true, email: true },
+        where: { status: 'ACTIVE' }
+      });
+
+      // Consider adding to [prisma.mdc](mdc:.cursor/rules/prisma.mdc):
+      // - Standard select fields
+      // - Common where conditions
+      // - Performance optimization patterns
+      ```
+
+      ## Rule Quality Checks
+      - Rules should be actionable and specific
+      - Examples should come from actual code
+      - References should be up to date
+      - Patterns should be consistently enforced
+
+      ## Continuous Improvement
+      - Monitor code review comments
+      - Track common development questions
+      - Update rules after major refactors
+      - Add links to relevant documentation
+      - Cross-reference related rules
+
+      ## Rule Deprecation
+      - Mark outdated patterns as deprecated
+      - Remove rules that no longer apply
+      - Update references to deprecated rules
+      - Document migration paths for old patterns
+
+      ## Documentation Updates
+      - Keep examples synchronized with code
+      - Update references to external docs
+      - Maintain links between related rules
+      - Document breaking changes
+
+      Follow [cursor-rules-location.mdc](mdc:.cursor/rules/global/cursor-rules-location.mdc) for proper rule formatting and structure.
+
+examples:
+  - input: |
+      // Old pattern without clear organization
+      const getUsers = async () => {
+        const users = await prisma.user.findMany();
+        return users;
+      }
+
+      // New pattern with consistent structure
+      const getUsers = async () => {
+        const users = await prisma.user.findMany({
+          select: { id: true, name: true, email: true },
+          where: { status: 'ACTIVE' },
+          orderBy: { createdAt: 'desc' }
+        });
+        return users;
+      }
+    output: "Identify this pattern and update the prisma.mdc rule to include standardized select, where, and orderBy patterns"
+
+  - input: |
+      // Noticing a new error handling pattern
+      try {
+        // code that might fail
+      } catch (error) {
+        logger.error('Operation failed', { error, context: 'getUserData' });
+        throw new AppError('Failed to get user data', { cause: error });
+      }
+    output: "When you see consistent error handling patterns emerging, document them in error-handling.mdc rule"
+
+metadata:
+  priority: high
+  version: 1.0
+</rule>
