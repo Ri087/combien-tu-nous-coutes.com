@@ -134,7 +134,7 @@ export function ForgotPasswordForm({ error }: { error: string | null }) {
             </FancyButton.Root>
 
             <div className="flex flex-col items-center gap-1 text-center text-paragraph-sm text-text-sub-600">
-                Didn&apos;t get access?
+                Don&apos;t have access anymore?
                 <LinkButton.Root
                     variant="black"
                     size="medium"
