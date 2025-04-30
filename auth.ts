@@ -17,6 +17,7 @@ function getBaseUrl() {
 
 export const auth = betterAuth({
     baseURL: getBaseUrl(),
+    trustedOrigins: [getBaseUrl()],
     database: drizzleAdapter(db, {
         provider: "pg",
     }),
