@@ -88,9 +88,6 @@ KV_REST_API_TOKEN=
 # Blob Storage (optional)
 BLOB_READ_WRITE_TOKEN=
 
-# OpenAI (optional)
-OPENAI_API_KEY=
-
 # Node/Vercel
 NODE_ENV=development
 VERCEL_URL=
