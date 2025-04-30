@@ -1,6 +1,6 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: true
 ---
 # Available Cursor Rules
@@ -31,7 +31,6 @@ actions:
       global/drizzle-orm-best-practices: Best practices for using Drizzle ORM with PostgreSQL
       global/effective-prompting: Best practices for creating effective prompts for Large Language Models
       global/global-project-config: Global project configuration and standards
-      global/i18n-best-practices: Best practices for internationalization (i18n) in Next.js applications
       global/motion-react: Animating with the Motion for React animation library
       global/nextjs-best-practices: Best practices for Next.js applications and routing
       global/react-best-practices: Best practices for React development
