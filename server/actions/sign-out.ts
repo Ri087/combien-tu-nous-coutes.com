@@ -8,9 +8,9 @@ import { auth } from "@/auth";
 import { PAGES } from "@/constants/pages";
 
 export async function signOut() {
-    await auth.api.signOut({
-        headers: await headers(),
-    });
-    revalidatePath(PAGES.SIGN_IN);
-    redirect(PAGES.SIGN_IN);
+  await auth.api.signOut({
+    headers: await headers(),
+  });
+  revalidatePath(PAGES.SIGN_IN);
+  redirect(PAGES.SIGN_IN);
 }

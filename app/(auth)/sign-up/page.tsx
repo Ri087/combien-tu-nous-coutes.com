@@ -1,21 +1,21 @@
-import { Metadata } from "next";
-import { SearchParams } from "nuqs";
+import type { Metadata } from "next";
+import type { SearchParams } from "nuqs";
 
 import { SignUpForm } from "./_components/sign-up-form";
-import { signUpSearchParams } from "./searchParams";
+import { signUpSearchParams } from "./search-params";
 
 export const metadata: Metadata = {
-    title: "Register",
+  title: "Register",
 };
 
 interface PageRegisterProps {
-    searchParams: Promise<SearchParams>;
+  searchParams: Promise<SearchParams>;
 }
 
 export default async function PageRegister({
-    searchParams,
+  searchParams,
 }: PageRegisterProps) {
-    await signUpSearchParams.parse(searchParams);
+  await signUpSearchParams.parse(searchParams);
 
-    return <SignUpForm />;
+  return <SignUpForm />;
 }

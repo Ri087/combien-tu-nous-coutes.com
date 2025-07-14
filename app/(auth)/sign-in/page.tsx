@@ -1,19 +1,19 @@
-import { Metadata } from "next";
-import { type SearchParams } from "nuqs/server";
+import type { Metadata } from "next";
+import type { SearchParams } from "nuqs/server";
 
 import { SignInForm } from "./_components/sign-in-form";
-import { searchParamsCache } from "./searchParams";
+import { searchParamsCache } from "./search-params";
 
 export const metadata: Metadata = {
-    title: "Sign In",
+  title: "Sign In",
 };
 
 type SignInPageProps = {
-    searchParams: Promise<SearchParams>;
+  searchParams: Promise<SearchParams>;
 };
 
 export default async function PageLogin({ searchParams }: SignInPageProps) {
-    await searchParamsCache.parse(searchParams);
+  await searchParamsCache.parse(searchParams);
 
-    return <SignInForm />;
+  return <SignInForm />;
 }

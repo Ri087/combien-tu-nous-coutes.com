@@ -10,18 +10,18 @@ import { TRPCReactProvider } from "@/trpc/client";
 import CookieConsentBanner from "./_components/cookie-consent-banner";
 
 export function Providers({ children }: { children: React.ReactNode }) {
-    return (
-        <TRPCReactProvider>
-            <CSPostHogProvider>
-                <ThemeProvider attribute="class">
-                    <NuqsAdapter>
-                        <TooltipProvider>{children}</TooltipProvider>
-                    </NuqsAdapter>
-                    <CookieConsentBanner />
-                    <NotificationProvider />
-                    <Toaster position="top-center" richColors />
-                </ThemeProvider>
-            </CSPostHogProvider>
-        </TRPCReactProvider>
-    );
+  return (
+    <TRPCReactProvider>
+      <CSPostHogProvider>
+        <ThemeProvider attribute="class">
+          <NuqsAdapter>
+            <TooltipProvider>{children}</TooltipProvider>
+          </NuqsAdapter>
+          <CookieConsentBanner />
+          <NotificationProvider />
+          <Toaster position="top-center" richColors />
+        </ThemeProvider>
+      </CSPostHogProvider>
+    </TRPCReactProvider>
+  );
 }

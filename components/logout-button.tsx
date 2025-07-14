@@ -6,10 +6,10 @@ import * as Button from "@/components/ui/button";
 import { signOut } from "@/server/actions/sign-out";
 
 export function LogoutButton() {
-    return (
-        <Button.Root type="submit" onClick={() => signOut()}>
-            <Button.Icon as={RiLogoutBoxLine} />
-            Logout
-        </Button.Root>
-    );
+  return (
+    <Button.Root onClick={() => signOut()} type="submit">
+      <Button.Icon as={RiLogoutBoxLine} />
+      Logout
+    </Button.Root>
+  );
 }

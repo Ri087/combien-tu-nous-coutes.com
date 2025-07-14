@@ -3,10 +3,10 @@ import { Ratelimit } from "@upstash/ratelimit";
 import redis from "@/lib/redis";
 
 type DurationType =
-    | `${number} s`
-    | `${number} m`
-    | `${number} h`
-    | `${number} d`;
+  | `${number} s`
+  | `${number} m`
+  | `${number} h`
+  | `${number} d`;
 
 /**
  * Creates a rate limiter instance for a specific application feature
@@ -17,16 +17,16 @@ type DurationType =
  * @returns A ratelimit instance
  */
 export function createRateLimiter(
-    limit: number,
-    window: DurationType,
-    prefix = "ratelimit"
+  limit: number,
+  window: DurationType,
+  prefix = "ratelimit"
 ) {
-    return new Ratelimit({
-        redis,
-        limiter: Ratelimit.slidingWindow(limit, window),
-        analytics: true,
-        prefix,
-    });
+  return new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(limit, window),
+    analytics: true,
+    prefix,
+  });
 }
 
 /**
@@ -39,28 +39,28 @@ export function createRateLimiter(
  * @throws Error if rate limit is exceeded
  */
 export async function withRateLimit<T>(
-    ratelimit: Ratelimit,
-    identifier: string,
-    fn: () => Promise<T>
+  ratelimit: Ratelimit,
+  identifier: string,
+  fn: () => Promise<T>
 ): Promise<T> {
-    const { success, reset } = await ratelimit.limit(identifier);
+  const { success, reset } = await ratelimit.limit(identifier);
 
-    if (!success) {
-        throw new Error(
-            `Rate limit exceeded. Try again in ${Math.ceil((reset - Date.now()) / 1000)} seconds.`
-        );
-    }
+  if (!success) {
+    throw new Error(
+      `Rate limit exceeded. Try again in ${Math.ceil((reset - Date.now()) / 1000)} seconds.`
+    );
+  }
 
-    return fn();
+  return fn();
 }
 
 /**
  * Creates a global rate limiter for form submissions
  */
 export const formSubmissionRateLimiter = createRateLimiter(
-    5,
-    "1 m",
-    "form_submission"
+  5,
+  "1 m",
+  "form_submission"
 );
 
 /**

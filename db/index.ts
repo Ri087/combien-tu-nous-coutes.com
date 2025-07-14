@@ -7,11 +7,11 @@ import { env } from "@/env";
 import * as schema from "./schema";
 
 const pool = new Pool({
-    connectionString: env.DATABASE_URL,
+  connectionString: env.DATABASE_URL,
 });
 
 const db = drizzle(pool, {
-    schema,
+  schema,
 });
 
 type Database = typeof db;

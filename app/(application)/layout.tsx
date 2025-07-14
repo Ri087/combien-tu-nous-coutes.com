@@ -4,15 +4,15 @@ import { PAGES } from "@/constants/pages";
 import { getServerSession } from "@/lib/auth/utils";
 
 export default async function ApplicationLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-    const session = await getServerSession();
+  const session = await getServerSession();
 
-    if (!session) {
-        redirect(PAGES.SIGN_IN);
-    }
+  if (!session) {
+    redirect(PAGES.SIGN_IN);
+  }
 
-    return <div>{children}</div>;
+  return <div>{children}</div>;
 }

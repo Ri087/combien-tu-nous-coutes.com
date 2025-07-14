@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "biomejs.biome",
+    "inlang.vs-code-extension",
+    "EditorConfig.EditorConfig"
+  ],
+  "unwantedRecommendations": [
+    "esbenp.prettier-vscode",
+    "rvest.vs-code-prettier-eslint",
+    "dbaeumer.vscode-eslint"
+  ]
+}

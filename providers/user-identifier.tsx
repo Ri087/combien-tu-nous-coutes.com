@@ -5,7 +5,7 @@ import posthog from "posthog-js";
 import { useEffect } from "react";
 
 interface UserIdentifierProps {
-    user: User | null | undefined;
+  user: User | null | undefined;
 }
 
 /**
@@ -18,19 +18,19 @@ interface UserIdentifierProps {
  * ```
  */
 export function UserIdentifier({ user }: UserIdentifierProps) {
-    useEffect(() => {
-        // Only identify if we have a user
-        if (user) {
-            posthog.identify(user.id, {
-                email: user.email,
-                name: user.name,
-            });
-        } else {
-            // Reset identification when user is not available (logged out)
-            posthog.reset();
-        }
-    }, [user]);
+  useEffect(() => {
+    // Only identify if we have a user
+    if (user) {
+      posthog.identify(user.id, {
+        email: user.email,
+        name: user.name,
+      });
+    } else {
+      // Reset identification when user is not available (logged out)
+      posthog.reset();
+    }
+  }, [user]);
 
-    // This component doesn't render anything
-    return null;
+  // This component doesn't render anything
+  return null;
 }

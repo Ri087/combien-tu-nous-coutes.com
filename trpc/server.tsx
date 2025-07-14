@@ -1,12 +1,11 @@
 import "server-only"; // <-- ensure this file cannot be imported from the client
 
-import { cache } from "react";
-
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import {
-    createTRPCOptionsProxy,
-    TRPCQueryOptions,
+  createTRPCOptionsProxy,
+  type TRPCQueryOptions,
 } from "@trpc/tanstack-react-query";
+import { cache } from "react";
 
 import { createContext } from "@/server/context";
 import { appRouter } from "@/server/routers/_app";
@@ -18,31 +17,31 @@ import { makeQueryClient } from "./query-client";
 export const getQueryClient = cache(makeQueryClient);
 
 export const trpc = createTRPCOptionsProxy({
-    ctx: createContext,
-    router: appRouter,
-    queryClient: getQueryClient,
+  ctx: createContext,
+  router: appRouter,
+  queryClient: getQueryClient,
 });
 
 export const api = appRouter.createCaller(createContext);
 
 export function HydrateClient(props: { children: React.ReactNode }) {
-    const queryClient = getQueryClient();
-    return (
-        <HydrationBoundary state={dehydrate(queryClient)}>
-            {props.children}
-        </HydrationBoundary>
-    );
+  const queryClient = getQueryClient();
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      {props.children}
+    </HydrationBoundary>
+  );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: tRPC Config
 export function prefetch<T extends ReturnType<TRPCQueryOptions<any>>>(
-    queryOptions: T
+  queryOptions: T
 ) {
-    const queryClient = getQueryClient();
-    if (queryOptions.queryKey[1]?.type === "infinite") {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        void queryClient.prefetchInfiniteQuery(queryOptions as any);
-    } else {
-        void queryClient.prefetchQuery(queryOptions);
-    }
+  const queryClient = getQueryClient();
+  if (queryOptions.queryKey[1]?.type === "infinite") {
+    // biome-ignore lint/suspicious/noExplicitAny: tRPC Config
+    queryClient.prefetchInfiniteQuery(queryOptions as any);
+  } else {
+    queryClient.prefetchQuery(queryOptions);
+  }
 }

@@ -8,60 +8,58 @@ import { EmailFooter, EmailHeading, EmailText } from "./components/email-text";
 import { OtpDisplay } from "./components/otp-display";
 
 interface TwoFactorOTPTemplateProps {
-    otp: string;
-    host?: string;
-    name?: string;
+  otp: string;
+  host?: string;
+  name?: string;
 }
 
 function TwoFactorOTPTemplate({
-    otp,
-    host = PROJECT.DOMAIN,
-    name,
+  otp,
+  host = PROJECT.DOMAIN,
+  name,
 }: TwoFactorOTPTemplateProps) {
-    return (
-        <EmailLayout previewText={`Your temporary password for ${host}`}>
-            <div className="flex justify-center items-center w-full mb-6">
-                <Logomark className="text-white h-8" />
-            </div>
+  return (
+    <EmailLayout previewText={`Your temporary password for ${host}`}>
+      <div className="mb-6 flex w-full items-center justify-center">
+        <Logomark className="h-8 text-white" />
+      </div>
 
-            <Card>
-                <EmailHeading>
-                    {name ? `Hi ${name},` : "Hi there,"}
-                </EmailHeading>
+      <Card>
+        <EmailHeading>{name ? `Hi ${name},` : "Hi there,"}</EmailHeading>
 
-                <EmailText>
-                    {
-                        "Copy over your temporary password or use the automatic sign in button."
-                    }
-                </EmailText>
+        <EmailText>
+          {
+            "Copy over your temporary password or use the automatic sign in button."
+          }
+        </EmailText>
 
-                <EmailButton href={`https://${host}/login?code=${otp}`}>
-                    {"Sign In"}
-                </EmailButton>
+        <EmailButton href={`https://${host}/login?code=${otp}`}>
+          {"Sign In"}
+        </EmailButton>
 
-                <EmailText>
-                    {"Your temporary password is "}
-                    <strong>{"valid for one hour."}</strong>
-                </EmailText>
+        <EmailText>
+          {"Your temporary password is "}
+          <strong>{"valid for one hour."}</strong>
+        </EmailText>
 
-                <OtpDisplay otp={otp} />
+        <OtpDisplay otp={otp} />
 
-                <EmailText>
-                    {"Thanks,"}
-                    <br />
-                    {`The ${PROJECT.COMPANY} Team`}
-                </EmailText>
-            </Card>
+        <EmailText>
+          {"Thanks,"}
+          <br />
+          {`The ${PROJECT.COMPANY} Team`}
+        </EmailText>
+      </Card>
 
-            <EmailFooter />
-        </EmailLayout>
-    );
+      <EmailFooter />
+    </EmailLayout>
+  );
 }
 
 TwoFactorOTPTemplate.PreviewProps = {
-    otp: "123456",
-    host: PROJECT.DOMAIN,
-    name: "Leonard",
+  otp: "123456",
+  host: PROJECT.DOMAIN,
+  name: "Leonard",
 } as TwoFactorOTPTemplateProps;
 
 export default TwoFactorOTPTemplate;

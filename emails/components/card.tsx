@@ -1,14 +1,14 @@
 import { Section } from "@react-email/components";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface CardProps {
-    children: ReactNode;
+  children: ReactNode;
 }
 
 export function Card({ children }: CardProps) {
-    return (
-        <Section className="bg-zinc-800 rounded-3xl p-10 my-4 w-full">
-            {children}
-        </Section>
-    );
+  return (
+    <Section className="my-4 w-full rounded-3xl bg-zinc-800 p-10">
+      {children}
+    </Section>
+  );
 }

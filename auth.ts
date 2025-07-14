@@ -11,41 +11,43 @@ import { env } from "@/env";
 import { resend } from "@/lib/utils/email/resend";
 
 function getBaseUrl() {
-    if (env.VERCEL_PROJECT_PRODUCTION_URL)
-        return `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`;
-    return "http://localhost:3000";
+  if (env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+
+  return "http://localhost:3000";
 }
 
 export const auth = betterAuth({
-    baseURL: getBaseUrl(),
-    trustedOrigins: [getBaseUrl()],
-    database: drizzleAdapter(db, {
-        provider: "pg",
+  baseURL: getBaseUrl(),
+  trustedOrigins: [getBaseUrl()],
+  database: drizzleAdapter(db, {
+    provider: "pg",
+  }),
+  emailAndPassword: {
+    enabled: true,
+  },
+  plugins: [
+    emailOTP({
+      async sendVerificationOTP({ email, otp }, request) {
+        const host = request?.headers.get("host") ?? "localhost:3000";
+
+        const html = await render(
+          VerifyEmailTemplate({
+            otp,
+            host,
+            email,
+          })
+        );
+
+        await resend.emails.send({
+          from: env.RESEND_FROM_EMAIL,
+          to: email,
+          subject: `Your verification code for ${PROJECT.NAME}`,
+          html,
+        });
+      },
     }),
-    emailAndPassword: {
-        enabled: true,
-    },
-    plugins: [
-        emailOTP({
-            async sendVerificationOTP({ email, otp }, request) {
-                const host = request?.headers.get("host") ?? "localhost:3000";
-
-                const html = await render(
-                    VerifyEmailTemplate({
-                        otp,
-                        host,
-                        email,
-                    })
-                );
-
-                await resend.emails.send({
-                    from: env.RESEND_FROM_EMAIL,
-                    to: email,
-                    subject: `Your verification code for ${PROJECT.NAME}`,
-                    html,
-                });
-            },
-        }),
-        nextCookies(),
-    ],
+    nextCookies(),
+  ],
 });

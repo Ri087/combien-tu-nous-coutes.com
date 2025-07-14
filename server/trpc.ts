@@ -1,11 +1,11 @@
 import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
 
-import { Context } from "./context";
+import type { Context } from "./context";
 
 // Initialize tRPC with metadata type support
 const t = initTRPC.context<Context>().create({
-    transformer: superjson,
+  transformer: superjson,
 });
 
 export const middleware = t.middleware;
