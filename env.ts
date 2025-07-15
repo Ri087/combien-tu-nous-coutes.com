@@ -14,6 +14,8 @@ export const env = createEnv({
     NODE_ENV: z.enum(["development", "production"]).optional(),
     VERCEL_URL: z.string().optional(),
     VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
+    VERCEL_BRANCH_URL: z.string().optional(),
+    VERCEL_ENV: z.enum(["development", "production", "preview"]).optional(),
   },
   client: {
     NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1),
