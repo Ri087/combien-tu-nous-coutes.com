@@ -22,10 +22,7 @@
     "generate:auth": "pnpx @better-auth/cli generate --output ./db/schema/auth/auth-schema.ts && pnpm exec biome check --write ./db/schema/auth/auth-schema.ts",
     "trigger:deploy": "pnpx trigger.dev@latest deploy",
     "precommit": "pnpm typecheck && pnpm format",
-    "env:pull": "vercel env pull .env",
-    "translate": "node scripts/translate.js && pnpm format",
-    "translate:force": "node scripts/translate.js --force && pnpm format",
-    "translate:fast": "node scripts/translate.js --fast && pnpm format"
+    "env:pull": "vercel env pull .env"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",

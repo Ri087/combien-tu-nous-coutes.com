@@ -60,7 +60,6 @@ actions:
 
       ### Application Structure
       - ✅ App router with proper route groups
-      - ✅ Internationalization (i18n) setup
       - ✅ State management with Zustand
       - ✅ Form handling with react-hook-form
       - ✅ Schema validation with Zod
