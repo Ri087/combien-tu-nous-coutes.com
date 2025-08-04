@@ -50,6 +50,96 @@ actions:
          - Use proper form reset
          - Handle form dirty state
 
+      6. Using Boilerplate Form Components (AlignUI wrappers):
+         - All reusable form controls live in `components/form/` and internally use `Controller`
+         - Always pass `control` and `name` props; use `label`, `required`, `description`, `placeholder` as needed
+         - Import from `@/components/form` (barrel):
+           ```typescript
+           import {
+             FormInput,
+             FormSelect,
+             FormPassword,
+             FormTextarea,
+             FormCheckbox,
+             FormDateInput,
+             FormRichTextEditor,
+             FormFileUpload,
+             FormImageUpload,
+           } from "@/components/form";
+           ```
+         - Typical usage with `useForm`:
+           ```tsx
+           type Values = {
+             name: string;
+             email: string;
+             password: string;
+             agree: boolean;
+             dob: Date | null;
+             bio: string;
+             role: string;
+             avatarUrl: string;
+             imageUrl: string;
+             about: string;
+           };
+
+           const { control, handleSubmit } = useForm<Values>({
+             defaultValues: {
+               name: "",
+               email: "",
+               password: "",
+               agree: false,
+               dob: null,
+               bio: "",
+               role: "",
+               avatarUrl: "",
+               imageUrl: "",
+               about: "",
+             },
+           });
+
+           return (
+             <form onSubmit={handleSubmit(console.log)}>
+               <FormInput control={control} name="name" label="Name" required />
+               <FormInput control={control} name="email" type="email" label="Email" />
+               <FormPassword control={control} name="password" label="Password" />
+               <FormSelect
+                 control={control}
+                 name="role"
+                 label="Role"
+                 options={[
+                   { value: "admin", label: "Admin" },
+                   { value: "user", label: "User" },
+                 ]}
+                 placeholder="Select a role"
+               />
+               <FormTextarea control={control} name="bio" label="Bio" rows={4} maxLength={280} />
+               <FormCheckbox control={control} name="agree" label="I agree to the terms" />
+               <FormDateInput control={control} name="dob" label="Date of birth" />
+               <FormRichTextEditor control={control} name="about" label="About" />
+               <FormFileUpload
+                 control={control}
+                 name="avatarUrl"
+                 label="Avatar"
+                 uploadPath="/api/upload"
+                 acceptedTypes={["image/*"]}
+               />
+               <FormImageUpload
+                 control={control}
+                 name="imageUrl"
+                 label="Hero Image"
+                 uploadPath="/api/upload"
+                 acceptedTypes={["image/jpeg", "image/png", "image/webp"]}
+               />
+               <button type="submit">Submit</button>
+             </form>
+           );
+           ```
+         - Notes:
+           - `FormSelect` requires an `options` array with `{ value, label }`
+           - `FormDateInput` expects `Date | null` values and formats via `date-fns`
+           - `FormFileUpload` and `FormImageUpload` require `uploadPath`; optionally use `uploadPrefix`, `acceptedTypes`, `maxSize`, `onUploadSuccess`, `onRemoveSuccess`
+           - All components surface field errors via `FormField` automatically
+
 examples:
   - input: |
       // Bad: Not using form validation

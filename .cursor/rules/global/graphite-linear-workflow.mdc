@@ -1,0 +1,164 @@
+---
+description: using Graphite CLI with Linear
+globs: "**/*.{ts,tsx,js,jsx,json,md}"
+alwaysApply: false
+---
+# Graphite CLI with Linear Integration Workflow
+
+Streamlined workflow for using Graphite CLI with Linear issue tracking, focusing on automated PR submission and selective file staging.
+
+<rule>
+name: graphite_linear_workflow
+description: Essential workflow patterns for using Graphite CLI with Linear issue tracking. Manual inclusion for teams using Linear with Graphite.
+globs: ["**/*.{ts,tsx,js,jsx,json,md}"]
+filters:
+  - type: content
+    pattern: "(gt create|gt submit|linear|lkfl-)"
+actions:
+  - type: suggest
+    message: |
+      ## Graphite CLI with Linear Workflow
+
+      ### Complete Workflow Example
+
+      ```bash
+      # 1. IMPORTANT: Check working directory and add ONLY relevant files
+      git status  # Review what files are changed
+      git add src/specific-file.ts  # Add ONLY files related to this feature
+      git add src/another-file.tsx  # DO NOT use -a or --all
+
+      # 2. Create feature branch (from current active branch)
+      gt create "feature/lkfl-219-add-trigger-ai-telemetry" -m "feat: add trigger AI telemetry"
+
+      # 3. Submit the PR automatically
+      gt ss --no-edit --publish
+
+      # 4. If changes needed after AI review (CodeRabbit, Diamond, etc.)
+      # Make your changes, then:
+      git add path/to/changed-file.ts  # Add specific files only
+      gt modify  # Amend the commit with staged changes
+      gt ss --no-edit --publish  # Re-submit
+      ```
+
+      ### ⚠️ CRITICAL: File Management
+
+      **NEVER use `gt create -a` or `gt modify -a`** when working in a workspace with multiple ongoing changes.
+
+      ```bash
+      # ❌ WRONG - This adds ALL files
+      gt create "feature/lkfl-123-feature" -am "feat: add feature"
+
+      # ✅ CORRECT - Add files selectively first
+      git add src/components/new-feature.tsx
+      git add src/api/new-endpoint.ts
+      gt create "feature/lkfl-123-feature" -m "feat: add feature"
+      ```
+
+      ### Handling AI Code Review Feedback
+
+      When addressing feedback from AI reviewers (CodeRabbit, Diamond, etc.):
+
+      ```bash
+      # 1. Make the requested changes in your code
+
+      # 2. Stage ONLY the files related to the review feedback
+      git add src/file-with-fixes.ts
+      git add tests/updated-test.spec.ts
+
+      # 3. Amend the existing commit
+      gt modify  # Amends with staged changes only
+
+      # 4. Push the updated PR
+      gt ss --no-edit --publish
+      ```
+
+      ### Creating Branches with Linear Issue ID
+
+      ```bash
+      # Standard format: feature/issue-XXX-description
+      git add src/components/user-profile.tsx
+      git add src/api/user-endpoints.ts
+      gt create "feature/lkfl-123-implement-user-authentication" -m "feat: implement user authentication"
+      gt ss --no-edit --publish
+      ```
+
+      ### File Management Best Practices
+
+      **CRITICAL**: Always stage files selectively to avoid mixing different features:
+
+      ```bash
+      # Before creating any branch or modifying commits:
+      git status  # Always check what's changed
+
+      # Stage files one by one or by pattern
+      git add src/components/specific-component.tsx
+      git add src/api/specific-endpoint.ts
+      git add "src/features/current-feature/**/*.ts"  # Pattern for feature folder
+
+      # NEVER use these in a mixed workspace:
+      # ❌ git add .
+      # ❌ git add -A
+      # ❌ gt create -a
+      # ❌ gt modify -a
+      ```
+
+      ### Best Practices
+
+      1. **Branch Naming Convention**:
+         ```
+         feature/lkfl-[issue-number]-[brief-description]
+         Example: feature/lkfl-789-fix-login-redirect
+         ```
+
+      2. **Always use automated submission**:
+         ```bash
+         gt ss --no-edit --publish  # This is the only submission command you need
+         ```
+
+      3. **Stack Organization**:
+         - One Linear issue per logical feature
+         - Break down large issues into sub-branches
+         - Keep PRs small and focused
+
+examples:
+  - input: |
+      # Creating a new feature branch with new files
+      # Created: components/user-settings.tsx, api/settings-api.ts
+    output: |
+      # ✅ CORRECT: Add specific files only
+      git add components/user-settings.tsx
+      git add api/settings-api.ts
+      gt create "feature/lkfl-234-user-settings" -m "feat: implement user settings page"
+      gt ss --no-edit --publish
+
+  - input: |
+      # After AI code review feedback
+      # CodeRabbit says: "Missing error handling in api/settings-api.ts"
+    output: |
+      # ✅ CORRECT: Stage only the fixed file
+      # 1. Add error handling to api/settings-api.ts
+      # 2. Stage the specific file
+      git add api/settings-api.ts
+      # 3. Amend the commit
+      gt modify
+      # 4. Push updates
+      gt ss --no-edit --publish
+
+  - input: |
+      # Working directory has multiple unrelated changes
+      # Modified: feature-one.ts (for current feature)
+      # Modified: config.json (unrelated change)
+      # Modified: feature-two.ts (different feature)
+    output: |
+      # ✅ CORRECT: Be selective with file staging
+      git status  # Check all changes
+      git add feature-one.ts  # Add ONLY current feature file
+      gt create "feature/lkfl-567-add-payment-flow" -m "feat: add payment flow"
+      gt ss --no-edit --publish
+
+metadata:
+  priority: high
+  version: 1.2
+  linear_docs: https://linear.app/docs/github-integration#branch-naming
+  graphite_docs: https://graphite.dev/docs/graphite-integration
+</rule>
