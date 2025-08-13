@@ -58,7 +58,9 @@ export function FormTextarea<
         >
           {simple ? (
             <Textarea.Root
-              aria-describedby={fieldState.error ? `${uniqueId}-error` : undefined}
+              aria-describedby={
+                fieldState.error ? `${uniqueId}-error` : undefined
+              }
               aria-invalid={!!fieldState.error}
               disabled={disabled}
               hasError={!!fieldState.error}
@@ -72,7 +74,9 @@ export function FormTextarea<
             />
           ) : (
             <Textarea.Root
-              aria-describedby={fieldState.error ? `${uniqueId}-error` : undefined}
+              aria-describedby={
+                fieldState.error ? `${uniqueId}-error` : undefined
+              }
               aria-invalid={!!fieldState.error}
               disabled={disabled}
               hasError={!!fieldState.error}

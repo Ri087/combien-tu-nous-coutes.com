@@ -1,0 +1,471 @@
+---
+description: Guide complet pour migrer de tRPC vers oRPC avec exemples de code concrets
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Guide de migration de tRPC vers oRPC
+
+<rule>
+name: trpc_to_orpc_migration
+description: Guide complet pour migrer de tRPC vers oRPC avec exemples de code concrets. Manuel uniquement.
+globs: ["**/*.{ts,tsx}"]
+filters:
+  - type: file_extension
+    pattern: "\\.(ts|tsx)$"
+actions:
+  - type: suggest
+    message: |
+      Guide complet de migration de tRPC vers oRPC:
+
+      ## 1. Configuration du serveur
+
+      ### Avant (tRPC):
+      ```typescript
+      // server/context.ts
+      import { initTRPC } from '@trpc/server';
+
+      const t = initTRPC.meta<Meta>().context<Context>().create();
+      export const router = t.router;
+      export const publicProcedure = t.procedure;
+      ```
+
+      ### Après (oRPC):
+      ```typescript
+      // server/context.ts
+      import { os } from "@orpc/server";
+
+      export const base = os
+        .$context<{
+          headers: Headers;
+          db: Database;
+          pusherServer: Pusher;
+        }>()
+        .$meta<Meta>({ roles: undefined, permission: undefined });
+      ```
+
+      ## 2. Définition des routers
+
+      ### Avant (tRPC):
+      ```typescript
+      // server/routers/user/router.ts
+      import { t } from "@/server/context";
+
+      export const userRouter = t.router({
+        getUser: protectedProcedure
+          .input(getUserSchema)
+          .query(async ({ ctx, input }) => {
+            const { db, session } = ctx;
+            return await getUser({ db, session, input });
+          }),
+
+        updateUser: protectedProcedure
+          .input(updateUserSchema)
+          .mutation(async ({ ctx, input }) => {
+            const { db, session } = ctx;
+            return await updateUser({ db, session, input });
+          }),
+      });
+      ```
+
+      ### Après (oRPC):
+      ```typescript
+      // server/routers/user/router.ts
+      import { base } from "@/server/context";
+
+      export const userRouter = base.router({
+        getUser: protectedProcedure
+          .input(getUserSchema)
+          .handler(async ({ context, input }) => {
+            const { db, session } = context;
+            return await getUser({ db, session, input });
+          }),
+
+        updateUser: protectedProcedure
+          .input(updateUserSchema)
+          .handler(async ({ context, input }) => {
+            const { db, session } = context;
+            return await updateUser({ db, session, input });
+          }),
+      });
+      ```
+
+      **Changements clés:**
+      - `t.router()` → `base.router()`
+      - `.query()/.mutation()` → `.handler()`
+      - `ctx` → `context`
+
+      ## 3. Forcer les méthodes HTTP (GET pour les queries)
+
+      ### Nouveau pattern oRPC:
+      ```typescript
+      // Pour les queries, utiliser .route({ method: "GET" })
+      export const userRouter = base.router({
+        getUser: protectedProcedure
+          .route({ method: "GET" })
+          .handler(async ({ context }) => {
+            const { db, session } = context;
+            return await getUser({ db, session });
+          }),
+
+        getUserProfile: protectedProcedure
+          .route({ method: "GET" })
+          .input(getUserProfileSchema)
+          .handler(async ({ context, input }) => {
+            const { db, session } = context;
+            return await getUserProfile({ db, session, input });
+          }),
+      });
+      ```
+
+      ## 4. Gestion des erreurs
+
+      ### Avant (tRPC):
+      ```typescript
+      import { TRPCError } from "@trpc/server";
+
+      export async function getUser({ db, userId }) {
+        const user = await db.query.user.findFirst({
+          where: eq(user.id, userId),
+        });
+
+        if (!user) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "User not found",
+          });
+        }
+
+        return user;
+      }
+      ```
+
+      ### Après (oRPC):
+      ```typescript
+      import { ORPCError } from "@orpc/server";
+
+      export async function getUser({ db, userId }) {
+        const user = await db.query.user.findFirst({
+          where: eq(user.id, userId),
+        });
+
+        if (!user) {
+          throw new ORPCError(
+            "NOT_FOUND",
+            { message: "User not found" }
+          );
+        }
+
+        return user;
+      }
+      ```
+
+      **Changements:**
+      - `TRPCError` → `ORPCError`
+      - `new ORPCError({ code, message })` or `new ORPCError(code, message)` → `new ORPCError(code, { message })`
+
+      ## 5. Configuration client
+
+      ### Avant (tRPC):
+      ```typescript
+      // trpc/client.ts
+      import { createTRPCReact } from '@trpc/react-query';
+      import { httpBatchLink } from '@trpc/client';
+
+      export const trpc = createTRPCReact<AppRouter>();
+
+      const trpcClient = trpc.createClient({
+        links: [
+          httpBatchLink({
+            url: '/api/trpc',
+          }),
+        ],
+      });
+      ```
+
+      ### Après (oRPC):
+      ```typescript
+      // orpc/client.ts
+      import { createORPCClient } from "@orpc/client";
+      import { RPCLink } from "@orpc/client/fetch";
+      import { createTanstackQueryUtils } from "@orpc/tanstack-query";
+
+      const link = new RPCLink({
+        url: () => `${window.location.origin}/api/rpc`,
+        plugins: [
+          new DedupeRequestsPlugin(),
+          new BatchLinkPlugin(),
+        ],
+      });
+
+      export const orpcClient = createORPCClient(link);
+      export const orpc = createTanstackQueryUtils(orpcClient);
+      ```
+
+      ## 6. Utilisation côté client
+
+      ### Avant (tRPC):
+      ```typescript
+      // Hooks
+      import { trpc } from '@/trpc/client';
+
+      const { data, isLoading } = trpc.user.getUser.useQuery({ id: '123' });
+      const mutation = trpc.user.updateUser.useMutation();
+
+      // Prefetch
+      await trpc.user.getUser.prefetch({ id: '123' });
+
+      // Invalidation
+      queryClient.invalidateQueries({
+        queryKey: trpc.user.getUser.getQueryKey()
+      });
+      ```
+
+      ### Après (oRPC):
+      ```typescript
+      // Hooks
+      import { orpc } from '@/orpc/client';
+      import { useQuery, useMutation } from '@tanstack/react-query';
+
+      const { data, isLoading } = useQuery(
+        orpc.user.getUser.queryOptions({ id: '123' })
+      );
+      const { mutateAsync } = useMutation(
+        orpc.user.updateUser.mutationOptions()
+      );
+
+      // Prefetch
+      queryClient.prefetchQuery(orpc.user.getUser.queryOptions({ id: '123' }));
+
+      // Invalidation
+      queryClient.invalidateQueries(
+        orpc.user.getUser.queryOptions({ id: '123' })
+      );
+      ```
+
+      **Changements:**
+      - `trpc.procedure.useQuery()` → `useQuery(orpc.procedure.queryOptions())`
+      - `trpc.procedure.useMutation()` → `useMutation(orpc.procedure.mutationOptions())`
+      - `trpc.procedure.prefetch()` → `queryClient.prefetchQuery(orpc.procedure.queryOptions())`
+      - `trpc.procedure.getQueryKey()` → `orpc.procedure.queryOptions()`
+
+      ## 7. Composants Server (RSC)
+
+      ### Avant (tRPC):
+      ```typescript
+      // app/users/page.tsx
+      import { HydrateClient, prefetch, trpc } from '@/trpc/server';
+
+      export default async function UsersPage() {
+        prefetch(trpc.user.getUsers.queryOptions());
+
+        return (
+          <HydrateClient>
+            <UsersClient />
+          </HydrateClient>
+        );
+      }
+      ```
+
+      ### Après (oRPC):
+      ```typescript
+      // app/users/page.tsx
+      import { getQueryClient, HydrateClient } from '@/orpc/query/hydration';
+      import { orpc } from '@/orpc/client';
+
+      export default async function UsersPage() {
+        const queryClient = getQueryClient();
+
+        queryClient.prefetchQuery(orpc.user.getUsers.queryOptions());
+
+        return (
+          <HydrateClient client={queryClient}>
+            <UsersClient />
+          </HydrateClient>
+        );
+      }
+      ```
+
+      **Changements:**
+      - `prefetch()` → `queryClient.prefetchQuery()`
+      - `<HydrateClient>` → `<HydrateClient client={queryClient}>`
+
+      ## 8. API Routes
+
+      ### Avant (tRPC):
+      ```typescript
+      // app/api/trpc/[...trpc]/route.ts
+      import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
+      import { appRouter } from '@/server/routers/_app';
+
+      export async function GET(req: Request) {
+        return fetchRequestHandler({
+          endpoint: '/api/trpc',
+          req,
+          router: appRouter,
+          createContext: () => ({}),
+        });
+      }
+      ```
+
+      ### Après (oRPC):
+      ```typescript
+      // app/api/rpc/[[...rest]]/route.ts
+      import { ORPCHandler } from '@orpc/server/fetch';
+      import { appRouter } from '@/server/routers/_app';
+
+      const handler = new ORPCHandler(appRouter);
+
+      export const GET = handler.GET;
+      export const POST = handler.POST;
+      ```
+
+      ## 9. Checklist de migration
+
+      ### Étapes de migration:
+
+      1. **Installer les dépendances oRPC:**
+         ```bash
+         pnpm remove @trpc/server @trpc/client @trpc/react-query @trpc/next
+         pnpm add @orpc/server @orpc/client @orpc/tanstack-query
+         ```
+
+      2. **Migrer le context serveur:**
+         - Remplacer `initTRPC` par `os` d'oRPC
+         - Utiliser `.$context()` et `.$meta()`
+
+      3. **Migrer tous les routers:**
+         - `t.router()` → `base.router()`
+         - `.query()/.mutation()` → `.handler()`
+         - `ctx` → `context`
+         - Ajouter `.route({ method: "GET" })` pour les queries
+
+      4. **Migrer la gestion d'erreur:**
+         - `TRPCError` → `ORPCError`
+         - Changer la signature du constructeur
+
+      5. **Migrer le client:**
+         - Créer le client oRPC avec `RPCLink`
+         - Utiliser `createTanstackQueryUtils`
+
+      6. **Migrer les composants:**
+         - `useQuery(orpc.procedure.queryOptions())`
+         - `useMutation(orpc.procedure.mutationOptions())`
+         - `queryClient.prefetchQuery(orpc.procedure.queryOptions())`
+
+      7. **Migrer les API routes:**
+         - `/api/trpc/[...trpc]` → `/api/rpc/[[...rest]]`
+         - Utiliser `ORPCHandler`
+
+      8. **Tester et vérifier:**
+         - Vérifier que toutes les queries fonctionnent
+         - Tester les mutations
+         - Vérifier la hydration SSR
+         - Tester les invalidations
+
+      ## 10. Patterns spécifiques identifiés
+
+      ### Invalidation avec queryKey manuel:
+      ```typescript
+      // Acceptable pour invalidation large
+      queryClient.invalidateQueries({
+        queryKey: [["organization"]]
+      });
+      ```
+
+      ### Gestion des options TanStack Query:
+      ```typescript
+      // Avec des options personnalisées
+      const { data } = useQuery(
+        orpc.user.getUserWithSubscription.queryOptions({
+          staleTime: 0,
+          refetchOnWindowFocus: false,
+          refetchOnMount: false,
+          refetchOnReconnect: false,
+        })
+      );
+      ```
+
+      ### Mutations avec callbacks:
+      ```typescript
+      const { mutateAsync } = useMutation(
+        orpc.auth.banMultipleUsers.mutationOptions()
+      );
+
+      // Utilisation avec options
+      await mutateAsync(
+        { userIds },
+        {
+          onSuccess: () => {
+            invalidateUsersList();
+          },
+        }
+      );
+      ```
+examples:
+  - input: |
+      // Migration d'un router complet
+      // AVANT (tRPC)
+      export const userRouter = t.router({
+        getMe: protectedProcedure.query(async ({ ctx }) => {
+          const { db, session } = ctx;
+          return await getMe({ db, session });
+        }),
+
+        updateProfile: protectedProcedure
+          .input(updateProfileSchema)
+          .mutation(async ({ ctx, input }) => {
+            const { db, session } = ctx;
+            return await updateProfile({ db, session, input });
+          }),
+      });
+
+      // APRÈS (oRPC)
+      export const userRouter = base.router({
+        getMe: protectedProcedure
+          .route({ method: "GET" })
+          .handler(async ({ context }) => {
+            const { db, session } = context;
+            return await getMe({ db, session });
+          }),
+
+        updateProfile: protectedProcedure
+          .input(updateProfileSchema)
+          .handler(async ({ context, input }) => {
+            const { db, session } = context;
+            return await updateProfile({ db, session, input });
+          }),
+      });
+    output: "Exemple complet de migration d'un router"
+
+  - input: |
+      // Migration côté client
+      // AVANT (tRPC)
+      const { data } = trpc.user.getMe.useQuery();
+      const updateMutation = trpc.user.updateProfile.useMutation();
+
+      // APRÈS (oRPC)
+      const { data } = useQuery(orpc.user.getMe.queryOptions());
+      const { mutateAsync } = useMutation(orpc.user.updateProfile.mutationOptions());
+    output: "Migration des hooks côté client"
+
+  - input: |
+      // Migration des erreurs
+      // AVANT (tRPC)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "User not found",
+      });
+
+      // APRÈS (oRPC)
+      throw new ORPCError(
+        "NOT_FOUND",
+        { message: "User not found" }
+      );
+    output: "Migration de la gestion d'erreur"
+
+metadata:
+  priority: high
+  version: 1.0
+</rule>
+
