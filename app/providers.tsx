@@ -5,13 +5,13 @@ import { NotificationProvider } from "@/components/ui/notification-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { Provider as TooltipProvider } from "@/components/ui/tooltip";
 import { CSPostHogProvider } from "@/providers/posthog";
-import { TRPCReactProvider } from "@/trpc/client";
+import { ORPCQueryClientProvider } from "@/providers/query-client.provider";
 
 import CookieConsentBanner from "./_components/cookie-consent-banner";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <TRPCReactProvider>
+    <ORPCQueryClientProvider>
       <CSPostHogProvider>
         <ThemeProvider attribute="class">
           <NuqsAdapter>
@@ -22,6 +22,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
           <Toaster position="top-center" richColors />
         </ThemeProvider>
       </CSPostHogProvider>
-    </TRPCReactProvider>
+    </ORPCQueryClientProvider>
   );
 }
