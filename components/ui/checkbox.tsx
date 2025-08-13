@@ -3,7 +3,7 @@
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import * as React from "react";
 
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 
 function IconCheck({ ...rest }: React.SVGProps<SVGSVGElement>) {
   return (
@@ -15,7 +15,7 @@ function IconCheck({ ...rest }: React.SVGProps<SVGSVGElement>) {
       xmlns="http://www.w3.org/2000/svg"
       {...rest}
     >
-      <title>✔</title>
+      <title>Check icon</title>
       <path
         className="stroke-static-white"
         d="M1 3.5L4 6.5L9 1.5"
@@ -35,7 +35,7 @@ function IconIndeterminate({ ...rest }: React.SVGProps<SVGSVGElement>) {
       xmlns="http://www.w3.org/2000/svg"
       {...rest}
     >
-      <title>-</title>
+      <title>Indeterminate icon</title>
       <path className="stroke-static-white" d="M0 1H8" strokeWidth="1.5" />
     </svg>
   );
@@ -69,7 +69,7 @@ const Checkbox = React.forwardRef<
         width="20"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <title>□</title>
+        <title>Checkbox</title>
         <rect
           className={cn(
             "fill-bg-soft-200 transition duration-200 ease-out",
@@ -166,11 +166,10 @@ const Checkbox = React.forwardRef<
             "[&>path]:[stroke-dasharray:var(--total-length)] [&>path]:[stroke-dashoffset:var(--total-length)]",
             "group-data-[state=indeterminate]/checkbox:invisible"
           )}
-          style={
-            {
-              "--total-length": TOTAL_LENGTH_CHECK,
-            } as React.CSSProperties
-          }
+          style={{
+            // biome-ignore lint/suspicious/noExplicitAny: CSS custom property requires any type
+            ["--total-length" as any]: TOTAL_LENGTH_CHECK,
+          }}
         />
         <IconIndeterminate
           className={cn(
@@ -182,11 +181,10 @@ const Checkbox = React.forwardRef<
             "[&>path]:[stroke-dasharray:var(--total-length)] [&>path]:[stroke-dashoffset:var(--total-length)]",
             "invisible group-data-[state=indeterminate]/checkbox:visible"
           )}
-          style={
-            {
-              "--total-length": TOTAL_LENGTH_INDETERMINATE,
-            } as React.CSSProperties
-          }
+          style={{
+            // biome-ignore lint/suspicious/noExplicitAny: CSS custom property requires any type
+            ["--total-length" as any]: TOTAL_LENGTH_INDETERMINATE,
+          }}
         />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
