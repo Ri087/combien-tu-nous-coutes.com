@@ -1,15 +1,7 @@
-import { db } from "@/db";
-import { getServerSession } from "@/lib/auth/utils";
+import { os } from "@orpc/server";
+import type { Database } from "@/db";
 
-export const createContext = async () => {
-  const session = await getServerSession();
-
-  const ctx = {
-    session,
-    db,
-  };
-
-  return ctx;
-};
-
-export type Context = typeof createContext;
+export const base = os.$context<{
+  headers: Headers;
+  db: Database;
+}>();

@@ -1,8 +1,5 @@
-import { createContext } from "@/server/context";
-import { createCallerFactory, router } from "@/server/trpc";
+import { base } from "@/server/context";
 
-export const appRouter = router({});
-
-export const createCaller = createCallerFactory(appRouter)(createContext);
-
-export type AppRouter = typeof appRouter;
+export const appRouter = base.router({
+  // Add your routers here
+});

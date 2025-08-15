@@ -59,7 +59,9 @@ const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
 
     useEffect(() => {
       if (editor && content !== editor.getHTML()) {
-        editor.commands.setContent(content || "", { emitUpdate: false });
+        editor.commands.setContent(content || "", {
+          emitUpdate: false,
+        });
       }
     }, [editor, content]);
 
