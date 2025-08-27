@@ -70,11 +70,6 @@ export function VerificationForm() {
           },
         }
       );
-      setTimeout(() => {
-        setIsLoading(false);
-        // Simulate success for now
-        router.push(PAGES.DASHBOARD);
-      }, 1000);
     },
     [email, router, setError]
   );
