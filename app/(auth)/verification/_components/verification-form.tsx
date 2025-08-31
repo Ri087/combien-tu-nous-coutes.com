@@ -42,7 +42,7 @@ export function VerificationForm() {
     (values: z.infer<typeof verifyEmailSchema>) => {
       setIsLoading(true);
 
-      authClient.signIn.emailOtp(
+      authClient.emailOtp.verifyEmail(
         {
           email,
           otp: values.otp,

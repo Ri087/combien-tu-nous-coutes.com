@@ -18,6 +18,10 @@ function getBaseUrl() {
   return "http://localhost:3000";
 }
 
+function getProtocol() {
+  return env.NODE_ENV === "development" ? "http" : "https";
+}
+
 export const auth = betterAuth({
   baseURL: getBaseUrl(),
   trustedOrigins: [getBaseUrl()],
@@ -26,17 +30,28 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: true,
+    autoSignIn: true,
+  },
+  telemetry: {
+    enabled: false,
+  },
+  emailVerification: {
+    autoSignInAfterVerification: true,
   },
   plugins: [
     emailOTP({
+      overrideDefaultEmailVerification: true,
       async sendVerificationOTP({ email, otp }, request) {
         const host = request?.headers.get("host") ?? "localhost:3000";
+        const protocol = getProtocol();
+        const verificationUrl = `${protocol}://${host}/verification?otp=${otp}&email=${email}`;
 
         const html = await render(
           VerifyEmailTemplate({
             otp,
             host,
-            email,
+            verificationUrl,
           })
         );
 
