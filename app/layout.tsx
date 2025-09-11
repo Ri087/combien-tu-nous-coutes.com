@@ -6,6 +6,7 @@ import { env } from "@/env";
 import { cn } from "@/lib/utils/cn";
 import { Providers } from "./providers";
 
+import "@/orpc/server";
 import "./globals.css";
 
 const inter = FontSans({

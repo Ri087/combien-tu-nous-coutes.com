@@ -79,9 +79,7 @@ This runs:
 ```bash
 pnpm db:studio    # Open database management UI
 pnpm db:push      # Push schema changes to database
-pnpm format       # Format code with Prettier
-pnpm lint         # Run ESLint
-pnpm typecheck    # Run TypeScript checks
+pnpm checks       # Run checks
 ```
 
 ## Customization

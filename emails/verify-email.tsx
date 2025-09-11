@@ -10,14 +10,14 @@ import { OtpDisplay } from "./components/otp-display";
 interface VerifyEmailTemplateProps {
   otp: string;
   host: string;
-  email: string;
+  verificationUrl: string;
   name?: string;
 }
 
 export default function VerifyEmailTemplate({
   otp,
   host,
-  email,
+  verificationUrl,
   name,
 }: VerifyEmailTemplateProps) {
   return (
@@ -35,11 +35,7 @@ export default function VerifyEmailTemplate({
 
         <OtpDisplay otp={otp} />
 
-        <EmailButton
-          href={`https://${host}/verification?otp=${otp}&email=${email}`}
-        >
-          {"Verify Email"}
-        </EmailButton>
+        <EmailButton href={verificationUrl}>{"Verify Email"}</EmailButton>
 
         <EmailText>
           {"If you didn't request this code, you can safely ignore this email."}
@@ -60,6 +56,6 @@ export default function VerifyEmailTemplate({
 VerifyEmailTemplate.PreviewProps = {
   otp: "123456",
   host: PROJECT.DOMAIN,
-  email: "test@test.com",
+  verificationUrl: `https://${PROJECT.DOMAIN}/verification?otp=123456&email=test@test.com`,
   name: "Leonard",
 } as VerifyEmailTemplateProps;

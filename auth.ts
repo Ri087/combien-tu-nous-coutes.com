@@ -10,12 +10,18 @@ import VerifyEmailTemplate from "@/emails/verify-email";
 import { env } from "@/env";
 import { resend } from "@/lib/utils/email/resend";
 
-function getBaseUrl() {
+export function getBaseUrl() {
+  if (env.VERCEL_ENV === "preview") {
+    return `https://${env.VERCEL_BRANCH_URL}`;
+  }
   if (env.VERCEL_PROJECT_PRODUCTION_URL) {
     return `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`;
   }
-
   return "http://localhost:3000";
+}
+
+function getProtocol() {
+  return env.NODE_ENV === "development" ? "http" : "https";
 }
 
 export const auth = betterAuth({
@@ -26,17 +32,28 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: true,
+    autoSignIn: true,
+  },
+  telemetry: {
+    enabled: false,
+  },
+  emailVerification: {
+    autoSignInAfterVerification: true,
   },
   plugins: [
     emailOTP({
+      overrideDefaultEmailVerification: true,
       async sendVerificationOTP({ email, otp }, request) {
         const host = request?.headers.get("host") ?? "localhost:3000";
+        const protocol = getProtocol();
+        const verificationUrl = `${protocol}://${host}/verification?otp=${otp}&email=${email}`;
 
         const html = await render(
           VerifyEmailTemplate({
             otp,
             host,
-            email,
+            verificationUrl,
           })
         );
 

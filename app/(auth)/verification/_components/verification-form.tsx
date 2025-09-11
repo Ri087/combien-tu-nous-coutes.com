@@ -42,7 +42,7 @@ export function VerificationForm() {
     (values: z.infer<typeof verifyEmailSchema>) => {
       setIsLoading(true);
 
-      authClient.signIn.emailOtp(
+      authClient.emailOtp.verifyEmail(
         {
           email,
           otp: values.otp,
@@ -70,11 +70,6 @@ export function VerificationForm() {
           },
         }
       );
-      setTimeout(() => {
-        setIsLoading(false);
-        // Simulate success for now
-        router.push(PAGES.DASHBOARD);
-      }, 1000);
     },
     [email, router, setError]
   );
