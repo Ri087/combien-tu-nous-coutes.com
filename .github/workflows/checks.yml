@@ -1,0 +1,72 @@
+name: Run checks
+env:
+    VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+    VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+on:
+    pull_request:
+
+jobs:
+    optimize-ci:
+        runs-on: blacksmith-4vcpu-ubuntu-2404
+        outputs:
+            skip: ${{ steps.check_skip.outputs.skip }}
+        steps:
+            - name: Optimize CI
+              id: check_skip
+              uses: withgraphite/graphite-ci-action@main
+              with:
+                  graphite_token: ${{ secrets.GRAPHITE_TOKEN }}
+
+    all-checks:
+        name: Run all checks
+        runs-on: blacksmith-4vcpu-ubuntu-2404
+        needs: optimize-ci
+        if: needs.optimize-ci.outputs.skip == 'false'
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: useblacksmith/setup-node@v5
+              with:
+                  node-version: 22
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 9.15.0
+
+            - name: Get pnpm store directory
+              id: pnpm-cache
+              shell: bash
+              run: |
+                  echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm cache
+              uses: useblacksmith/cache@v5
+              with:
+                  path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Install Vercel CLI
+              run: npm install --global vercel@latest
+
+            - name: Pull Vercel Environment Information
+              run: vercel pull --yes --environment=preview --git-branch=${{ github.head_ref }} --token=${{ secrets.VERCEL_TOKEN }} && mv .vercel/.env.preview.local .env
+
+            - name: Run lint checks
+              run: |
+                  export NODE_ENV=production
+                  pnpm prepush || exit 1
+                  if [ -n "$(git status --porcelain)" ]; then
+                      echo "::error::Database migrations need to be generated. Run 'pnpm db:generate' locally and commit the changes."
+                      git status --porcelain
+                      exit 1
+                  fi

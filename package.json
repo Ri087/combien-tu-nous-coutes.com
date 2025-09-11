@@ -10,9 +10,7 @@
     "dev:email": "email dev --port 3001",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "pnpm exec biome check --write .",
-    "typecheck": "tsc --noEmit",
-    "format": "pnpm exec biome check --write .",
+    "checks": "pnpm exec biome check --write . && tsc --noEmit",
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate && pnpm exec biome check --write migrations",
     "db:migrate": "drizzle-kit migrate",
@@ -21,8 +19,11 @@
     "db:stop": "docker compose -f docker-compose.yml down -v",
     "generate:auth": "pnpx @better-auth/cli generate --output ./db/schema/auth/schema.ts && pnpm exec biome check --write ./db/schema/auth/schema.ts",
     "trigger:deploy": "pnpx trigger.dev@latest deploy",
-    "precommit": "pnpm typecheck && pnpm format",
-    "env:pull": "vercel env pull .env"
+    "env:pull": "vercel env pull .env",
+    "sync": "git fetch template && git merge template/main",
+    "sync:initial": "git fetch template && git merge template/main --allow-unrelated-histories",
+    "setup:sync": "git remote get-url template >/dev/null 2>&1 && git remote set-url template https://github.com/impulse-studio/minimal-boilerplate.git || git remote add template https://github.com/impulse-studio/minimal-boilerplate.git",
+    "deploy:hotfix": "git switch -c hotfix && git push -u origin hotfix && git switch -"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
