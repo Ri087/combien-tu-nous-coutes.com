@@ -57,8 +57,8 @@ jobs:
           STATUS=""
           while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
             RESP=$(curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" \
-              "https://api.vercel.com/v13/deployments?projectId=$VERCEL_PROJECT_ID&meta-githubCommitSha=$COMMIT_SHA&target=production&limit=1$TEAM_PARAM")
-            STATUS=$(echo "$RESP" | jq -r '.deployments[0].status // empty')
+              "https://api.vercel.com/v6/deployments?projectId=$VERCEL_PROJECT_ID&meta-githubCommitSha=$COMMIT_SHA&target=production&limit=1$TEAM_PARAM")
+            STATUS=$(echo "$RESP" | jq -r '.deployments[0].state // empty')
             URL=$(echo "$RESP" | jq -r '.deployments[0].url // empty')
             if [ "$STATUS" = "READY" ]; then
               echo "Deployment READY at https://$URL"; exit 0
