@@ -1,43 +1,80 @@
 name: Production Tag Deployment
+
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
 on:
   push:
-    # Pattern matched against refs/tags
     tags:
-      - '*' # Push events to every tag not containing /
+      - '*'  # any tag denotes a production release tag
+
 jobs:
   Deploy-Production:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # required to push to main
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Setup Node.js
         uses: useblacksmith/setup-node@v5
         with:
           node-version: 22
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-            version: 9.15.0
-            run_install: true
+      - name: Determine tag commit
+        id: tag
+        run: |
+          echo "tag_name=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+          tag_sha=$(git rev-list -n 1 "$GITHUB_REF_NAME")
+          echo "tag_sha=$tag_sha" >> $GITHUB_OUTPUT
 
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+      - name: Update main to tag commit (no merge/squash)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git fetch origin main --prune
+          git checkout -B main "${{ steps.tag.outputs.tag_sha }}"
+          git push origin main --force-with-lease
 
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Move Vercel Environment to .env
-        run: mv .vercel/.env.production.local .env
-
-      - name: Build Project Artifacts
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Wait for Vercel production deployment to complete
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ env.VERCEL_ORG_ID }}
+          COMMIT_SHA: ${{ steps.tag.outputs.tag_sha }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "VERCEL_TOKEN or VERCEL_PROJECT_ID not set; skipping wait."; exit 0
+          fi
+          TEAM_PARAM=""
+          if [ -n "$VERCEL_ORG_ID" ]; then
+            TEAM_PARAM="&teamId=$VERCEL_ORG_ID"
+          fi
+          echo "Waiting for Vercel production deployment for commit $COMMIT_SHA..."
+          ATTEMPTS=0
+          MAX_ATTEMPTS=90  # ~15 minutes @ 10s
+          STATUS=""
+          while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+            RESP=$(curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v13/deployments?projectId=$VERCEL_PROJECT_ID&meta-githubCommitSha=$COMMIT_SHA&target=production&limit=1$TEAM_PARAM")
+            STATUS=$(echo "$RESP" | jq -r '.deployments[0].status // empty')
+            URL=$(echo "$RESP" | jq -r '.deployments[0].url // empty')
+            if [ "$STATUS" = "READY" ]; then
+              echo "Deployment READY at https://$URL"; exit 0
+            fi
+            if [ "$STATUS" = "ERROR" ] || [ "$STATUS" = "CANCELED" ]; then
+              echo "Deployment failed with status: $STATUS"; echo "$RESP"; exit 1
+            fi
+            ATTEMPTS=$((ATTEMPTS+1))
+            sleep 10
+          done
+          echo "Timed out waiting for Vercel deployment."; exit 1
 
       - name: Notify Discord (Production Deploy Success)
         if: success()
