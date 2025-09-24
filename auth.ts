@@ -43,7 +43,6 @@ export const auth = betterAuth({
   },
   plugins: [
     emailOTP({
-      overrideDefaultEmailVerification: true,
       async sendVerificationOTP({ email, otp }, request) {
         const host = request?.headers.get("host") ?? "localhost:3000";
         const protocol = getProtocol();
