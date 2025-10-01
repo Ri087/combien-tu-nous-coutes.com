@@ -1,11 +1,21 @@
 import {
   defaultShouldDehydrateQuery,
+  MutationCache,
   QueryClient,
 } from "@tanstack/react-query";
 import { serializer } from "../serializer";
 
 export function createQueryClient() {
-  return new QueryClient({
+  const queryClient = new QueryClient({
+    mutationCache: new MutationCache({
+      onSettled(_data, _error, _variables, _context, mutation) {
+        if (mutation.meta?.invalidateQueries) {
+          for (const queryKey of mutation.meta.invalidateQueries) {
+            queryClient.invalidateQueries({ queryKey });
+          }
+        }
+      },
+    }),
     defaultOptions: {
       queries: {
         queryKeyHashFn(queryKey) {
@@ -30,4 +40,6 @@ export function createQueryClient() {
       },
     },
   });
+
+  return queryClient;
 }
