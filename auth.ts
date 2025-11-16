@@ -43,6 +43,20 @@ export const auth = betterAuth({
   },
   plugins: [
     emailOTP({
+      generateOTP: () => {
+        if (env.NODE_ENV === "testing") {
+          return "123456";
+        }
+
+        // Generate a cryptographically secure 6-digit code
+        const randomBytes = crypto.getRandomValues(new Uint8Array(4));
+        const randomNumber = randomBytes.reduce(
+          (acc, byte, i) => acc + byte * 256 ** i,
+          0
+        );
+        return String(randomNumber % 1_000_000).padStart(6, "0");
+      },
+      overrideDefaultEmailVerification: true,
       async sendVerificationOTP({ email, otp }, request) {
         const host = request?.headers.get("host") ?? "localhost:3000";
         const protocol = getProtocol();
