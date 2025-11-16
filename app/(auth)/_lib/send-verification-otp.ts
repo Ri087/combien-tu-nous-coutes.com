@@ -6,7 +6,7 @@ export default function sendVerificationOtp(email: string): Promise<string> {
     authClient.emailOtp.sendVerificationOtp(
       {
         email,
-        type: "sign-in",
+        type: "email-verification",
       },
       {
         onError: (ctx) => {
