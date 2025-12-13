@@ -64,7 +64,7 @@ jobs:
             - name: Run lint checks
               run: |
                   export NODE_ENV=production
-                  pnpm prepush || exit 1
+                  pnpm checks || exit 1
                   if [ -n "$(git status --porcelain)" ]; then
                       echo "::error::Database migrations need to be generated. Run 'pnpm db:generate' locally and commit the changes."
                       git status --porcelain
