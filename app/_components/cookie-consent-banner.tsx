@@ -1,6 +1,5 @@
 "use client";
 
-import { usePostHog } from "posthog-js/react";
 import { useEffect, useState } from "react";
 import { useLocalStorage } from "usehooks-ts";
 
@@ -30,16 +29,6 @@ export default function CookieConsentBanner() {
     "undecided"
   );
 
-  const posthog = usePostHog();
-
-  useEffect(() => {
-    if (consentGiven !== "undecided") {
-      posthog.set_config({
-        persistence: consentGiven === "yes" ? "localStorage+cookie" : "memory",
-      });
-    }
-  }, [consentGiven, posthog]);
-
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -55,8 +44,8 @@ export default function CookieConsentBanner() {
           <div className="space-y-1.5">
             <div className="text-label-sm">Cookie Consent</div>
             <div>
-              We use cookies to improve your experience and for analytics. You
-              can accept or decline.
+              We use cookies to improve your experience. You can accept or
+              decline.
             </div>
           </div>
           <div className="flex items-center gap-2">

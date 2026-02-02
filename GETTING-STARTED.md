@@ -1,61 +1,34 @@
 # Getting Started: Impulse Minimal Boilerplate
 
-Welcome! This guide will help you set up your development and production environment for the Impulse Minimal Boilerplate. Follow each step to ensure your project is ready to run locally and on Vercel.
+Welcome! This guide will help you set up your development and production environment for the Impulse Minimal Boilerplate.
 
 ---
 
-## 1. Create a Project on PostHog (Analytics)
+## 1. Create Neon Database (Postgres) through Vercel
 
-- Go to [PostHog](https://eu.posthog.com)
-- Sign up or log in
-- Create a new project (e.g., "Impulse App")
-- In your project settings, find your **Project API Key** and **Host**
-- You'll need these for your environment variables:
-    - `NEXT_PUBLIC_POSTHOG_KEY`
-    - `NEXT_PUBLIC_POSTHOG_HOST`
+- Go to [Vercel](https://vercel.com/)
+- In your project, navigate to **Storage** > **Create Database**
+- Follow the prompts to create a new Neon Postgres database
+- Once created, the integration will automatically link:
+    - `DATABASE_URL`
 
 ## 2. Set Up Resend (Transactional Email)
 
 - Go to [Vercel](https://vercel.com/)
 - In your project, go to **Settings > Environment Variables**
-- Link the shared environment variables for Resend
+- Link the shared environment variables for Resend:
     - `RESEND_API_KEY`
     - `RESEND_FROM_EMAIL`
 
-## 3. Create and Link Redis on Vercel (Caching/Key-Value Store)
+## 3. Add Environment Variables to Vercel
 
-- Go to [Vercel](https://vercel.com/impulse-lab)
-- In your project, navigate to **Storage** > **Create Database**
-- Follow the prompts to create a new Upstash Redis database
-- Once created, the integration will automatically link the necessary environment variables to your project:
-    - `KV_REST_API_URL`
-    - `KV_REST_API_TOKEN`
-
-## 4. Create Neon Database (Postgres) through Vercel
-
-- Go to [Vercel](https://vercel.com/impulse-lab)
-- In your project, navigate to **Storage** > **Create Database**
-- Follow the prompts to create a new Neon Postgres database
-- Once created, the integration will automatically link the necessary environment variable to your project:
-    - `DATABASE_URL`
-
-## 5. Add Environment Variables to Vercel
-
-- Go to [Vercel](https://vercel.com/)
-- Import your GitHub repo or create a new project
-- In your project, go to **Settings > Environment Variables**
+- In your Vercel project, go to **Settings > Environment Variables**
 - Add all required variables (see below)
-- **Tip:** You can use the Vercel CLI to add variables:
-    ```bash
-    vercel env add
-    ```
-- For local development, copy `.env.example.dev` to `.env` and fill in the values
+- For local development, copy `.env.example` to `.env` and fill in the values
 
 ---
 
-## 6. Required Environment Variables
-
-Paste these into Vercel or your local `.env` file and fill in the values:
+## 4. Required Environment Variables
 
 ```env
 # Database
@@ -63,35 +36,18 @@ DATABASE_URL=
 
 # Auth
 BETTER_AUTH_SECRET=
-BETTER_AUTH_URL=
 
 # Email (Resend)
 RESEND_API_KEY=
 RESEND_FROM_EMAIL=
 
-# Upstash Redis
-KV_REST_API_URL=
-KV_REST_API_TOKEN=
-
-# Blob Storage (optional)
-BLOB_READ_WRITE_TOKEN=
-
-# Node/Vercel
-NODE_ENV=development
-VERCEL_URL=
-
-# PostHog (analytics)
-NEXT_PUBLIC_POSTHOG_KEY=
-NEXT_PUBLIC_POSTHOG_HOST=
-
-# Devtools (optional)
+# Dev tools (optional)
 NEXT_PUBLIC_REACT_QUERY_DEVTOOLS=false
-NEXT_PUBLIC_REACT_SCAN_DEVTOOLS=false
 ```
 
 ---
 
-## 7. Run the Project
+## 5. Run the Project
 
 **Install dependencies:**
 
@@ -109,15 +65,23 @@ Open [http://localhost:3000](http://localhost:3000) to see your app.
 
 ---
 
-## 8. Useful Links
+## 6. Optional Extensions
 
-- [PostHog](https://posthog.com/)
+See `.claude/skills/` for guides on activating optional features:
+
+- **Vercel Blob** - File uploads (`.claude/skills/vercel-blob.md`)
+- **AI SDK** - AI-powered features (`.claude/skills/ai-sdk.md`)
+- **Tiptap** - Rich text editor (`.claude/skills/tiptap.md`)
+- **PostHog** - Analytics (`.claude/skills/analytics.md`)
+- **Upstash Redis** - Rate limiting & caching (`.claude/skills/redis.md`)
+
+---
+
+## 7. Useful Links
+
 - [Resend](https://resend.com/)
-- [Upstash](https://upstash.com/)
 - [Neon](https://neon.tech/)
 - [Vercel](https://vercel.com/)
-- [Impulse Docs](https://docs.impulse-lab.com)
-- [Impulse GitHub](https://github.com/impulse-lab)
 
 ---
 

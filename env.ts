@@ -8,24 +8,20 @@ export const env = createEnv({
     RESEND_API_KEY: z.string().min(1),
     RESEND_FROM_EMAIL: z.string().min(1),
 
-    KV_REST_API_URL: z.string().min(1),
-    KV_REST_API_TOKEN: z.string().min(1),
-
     NODE_ENV: z.enum(["development", "production", "testing"]).optional(),
     VERCEL_URL: z.string().optional(),
     VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
     VERCEL_BRANCH_URL: z.string().optional(),
     VERCEL_ENV: z.enum(["development", "production", "preview"]).optional(),
+
+    // Optional - Vercel Blob (activate if needed)
+    BLOB_READ_WRITE_TOKEN: z.string().optional(),
   },
   client: {
-    NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1),
-    NEXT_PUBLIC_POSTHOG_HOST: z.string().url(),
     NEXT_PUBLIC_REACT_QUERY_DEVTOOLS: z.enum(["true", "false"]).optional(),
     NEXT_PUBLIC_REACT_SCAN_DEVTOOLS: z.enum(["true", "false"]).optional(),
   },
   experimental__runtimeEnv: {
-    NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
-    NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     NEXT_PUBLIC_REACT_QUERY_DEVTOOLS:
       process.env.NEXT_PUBLIC_REACT_QUERY_DEVTOOLS,
     NEXT_PUBLIC_REACT_SCAN_DEVTOOLS:
