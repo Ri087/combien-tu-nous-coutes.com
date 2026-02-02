@@ -32,9 +32,8 @@ export function ForgotPasswordForm({ error }: { error: string | null }) {
 
   async function onSubmit(values: z.infer<typeof forgotPasswordSchema>) {
     setIsLoading(true);
-    const { error } = await authClient.forgetPassword({
+    const { error } = await authClient.forgetPassword.emailOtp({
       email: values.email,
-      redirectTo: "/reset-password",
     });
 
     if (error) {

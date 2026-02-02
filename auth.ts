@@ -58,7 +58,7 @@ export const auth = betterAuth({
       },
       overrideDefaultEmailVerification: true,
       async sendVerificationOTP({ email, otp }, request) {
-        const host = request?.headers.get("host") ?? "localhost:3000";
+        const host = request?.headers?.get("host") ?? "localhost:3000";
         const protocol = getProtocol();
         const verificationUrl = `${protocol}://${host}/verification?otp=${otp}&email=${email}`;
 
