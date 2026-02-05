@@ -56,7 +56,6 @@ export const auth = betterAuth({
         );
         return String(randomNumber % 1_000_000).padStart(6, "0");
       },
-      overrideDefaultEmailVerification: true,
       async sendVerificationOTP({ email, otp }, request) {
         const host = request?.headers?.get("host") ?? "localhost:3000";
         const protocol = getProtocol();
