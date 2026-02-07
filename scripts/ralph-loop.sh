@@ -5,9 +5,9 @@
 # =============================================================================
 
 # Configuration
-MAX_ITERATIONS=50          # Sécurité : max 50 boucles
+MAX_ITERATIONS=20          # Sécurité : max 20 boucles (chaque itération est plus productive avec Agent Teams)
 SLEEP_BETWEEN=5            # Pause entre les itérations (secondes)
-ITERATION_TIMEOUT=3600     # Timeout par itération (60 min)
+ITERATION_TIMEOUT=7200     # Timeout par itération (120 min — Agent Teams prend plus de temps)
 PROJECT_DIR="${1:-.}"      # Dossier du projet (défaut: dossier courant)
 
 # Couleurs pour le terminal
@@ -121,6 +121,7 @@ echo -e "  📁 Projet:       ${BOLD}$PROJECT_DIR${NC}"
 echo -e "  🔄 Max iter:     $MAX_ITERATIONS"
 echo -e "  ⏱  Timeout/iter: ${ITERATION_TIMEOUT}s"
 echo -e "  📋 Features:     $(count_features)"
+echo -e "  🤖 Agent Teams:  ${GREEN}ENABLED${NC}"
 print_progress_bar
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
@@ -137,21 +138,23 @@ cat > "$STATUS_FILE" << 'EOF'
 EOF
 
 # Le prompt qui sera donné à Claude Code à chaque itération
-PROMPT="Tu travailles sur ce projet.
+PROMPT="Tu es le Lead Coordinator d'une équipe Agent Teams.
 
 INSTRUCTIONS:
-1. Lis FEATURES.md pour voir les features à implémenter
-2. Implémente la prochaine feature marquée [ ] (TODO)
-3. Une fois implémentée, marque-la [x] (DONE) dans FEATURES.md
-4. Vérifie que le build passe avec 'pnpm build'
+1. Utilise la commande /build pour orchestrer l'équipe
+2. Tu as 3 agents à ta disposition : backend-dev, frontend-dev, code-reviewer
+3. Délègue tout le code aux agents spécialisés via SendMessage
+4. Utilise TaskCreate pour créer les tâches et TaskList pour monitorer
 5. Si TOUTES les features sont [x], mets EXIT_SIGNAL: true dans RALPH_STATUS.md
 
 IMPORTANT:
-- Ne t'arrête PAS tant qu'il reste des features TODO
-- Si tu rencontres un blocage, note-le dans RALPH_STATUS.md et continue sur autre chose
+- Tu ne codes JAMAIS toi-même — tu orchestres uniquement
+- Respecte le file ownership entre agents
+- Parallélise les features indépendantes
+- Chaque feature doit passer pnpm build avant d'être marquée DONE
 - Fais des commits réguliers
 
-Commence maintenant."
+Commence maintenant avec /build."
 
 # === BOUCLE PRINCIPALE ===
 while [ $ITERATION -lt $MAX_ITERATIONS ]; do
@@ -173,7 +176,7 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
 
     # Lance Claude Code avec output visible + log
     cd "$PROJECT_DIR"
-    claude --dangerously-skip-permissions -p "$PROMPT" 2>&1 | tee "$ITER_LOG" &
+    CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude --dangerously-skip-permissions -p "$PROMPT" 2>&1 | tee "$ITER_LOG" &
     CLAUDE_PID=$!
 
     # Watchdog timeout en background
