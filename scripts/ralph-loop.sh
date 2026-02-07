@@ -173,11 +173,28 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
 
     # Lance Claude Code avec output visible + log
     cd "$PROJECT_DIR"
-    timeout "$ITERATION_TIMEOUT" claude --dangerously-skip-permissions -p "$PROMPT" 2>&1 | tee "$ITER_LOG"
+    claude --dangerously-skip-permissions -p "$PROMPT" 2>&1 | tee "$ITER_LOG" &
+    CLAUDE_PID=$!
+
+    # Watchdog timeout en background
+    (
+        sleep "$ITERATION_TIMEOUT"
+        if kill -0 "$CLAUDE_PID" 2>/dev/null; then
+            kill "$CLAUDE_PID" 2>/dev/null
+        fi
+    ) &
+    WATCHDOG_PID=$!
+
+    # Attend la fin de Claude
+    wait "$CLAUDE_PID" 2>/dev/null
     CLAUDE_EXIT=$?
 
-    # Timeout détecté
-    if [ $CLAUDE_EXIT -eq 124 ]; then
+    # Nettoie le watchdog s'il tourne encore
+    kill "$WATCHDOG_PID" 2>/dev/null
+    wait "$WATCHDOG_PID" 2>/dev/null
+
+    # Timeout détecté (killed = 137)
+    if [ $CLAUDE_EXIT -eq 137 ] || [ $CLAUDE_EXIT -eq 143 ]; then
         echo ""
         echo -e "${RED}⏱  Timeout atteint (${ITERATION_TIMEOUT}s) — passage à l'itération suivante${NC}"
     fi
