@@ -147,11 +147,19 @@ INSTRUCTIONS:
 4. Utilise TaskCreate pour créer les tâches et TaskList pour monitorer
 5. Si TOUTES les features sont [x], mets EXIT_SIGNAL: true dans RALPH_STATUS.md
 
+RESSOURCES IMPULSE STUDIO (OBLIGATOIRE):
+- Lis .claude/resources/impulse-repos.md pour connaître les repos de référence
+- Les agents DOIVENT s'inspirer des templates Impulse Studio pour chaque feature
+- Frontend : lire .claude/resources/alignui-ai-template-patterns.md, alignui-ui-patterns.md, finance-template-ui-patterns.md AVANT de coder
+- Backend : consulter impulse-studio/nextjs-boilerplate via DeepWiki (mcp__devin__read_wiki_contents)
+- Mapper chaque feature au template le plus pertinent (dashboard→marketing/finance, chat→ai-template, forms→hr)
+
 IMPORTANT:
 - Tu ne codes JAMAIS toi-même — tu orchestres uniquement
 - Respecte le file ownership entre agents
 - Parallélise les features indépendantes
 - Chaque feature doit passer pnpm build avant d'être marquée DONE
+- Génère les migrations DB avec pnpm db:generate avant le build final
 - Fais des commits réguliers
 
 Commence maintenant avec /build."

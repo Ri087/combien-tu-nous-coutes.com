@@ -145,9 +145,10 @@ Pendant que les agents travaillent :
 Quand toutes les tâches de review sont `completed` :
 
 1. Vérifie que toutes les features sont marquées `[x]` dans FEATURES.md
-2. Lance un dernier `pnpm build` global
-3. Fais un commit récapitulatif si nécessaire
-4. Si exécuté via ralph-loop : écris `EXIT_SIGNAL: true` dans RALPH_STATUS.md
+2. Génère les migrations DB : `pnpm db:generate`
+3. Lance un dernier `pnpm build` global
+4. Fais un commit récapitulatif si nécessaire (inclure les fichiers de migration générés)
+5. Si exécuté via ralph-loop : écris `EXIT_SIGNAL: true` dans RALPH_STATUS.md
 
 ---
 
