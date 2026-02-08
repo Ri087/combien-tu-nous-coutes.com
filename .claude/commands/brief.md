@@ -184,6 +184,29 @@ Une fois que tu as terminé la phase de recherche ET produit les livrables :
 1. Commit les ressources de recherche : `git add docs/research/ && git commit -m "docs: add research resources for [projet]"`
 2. Commit les user stories et features : `git add USER-STORIES.md FEATURES.md && git commit -m "docs: add user stories and features for [projet]"`
 
+## Contraintes techniques obligatoires
+
+### Vercel AI Gateway (OBLIGATOIRE pour tout ce qui est AI)
+
+Quand le projet utilise de l'AI (chat, génération, streaming, etc.) :
+
+- **TOUJOURS utiliser le Vercel AI Gateway** — jamais de provider direct
+- **NE PAS installer** `@ai-sdk/openai`, `@ai-sdk/anthropic`, etc. — le gateway gère tout
+- Utiliser le format `provider/model` (ex: `anthropic/claude-sonnet-4-5`, `openai/gpt-5`)
+- Le package `ai` v6 inclut déjà le gateway, pas de dépendance supplémentaire
+- Variable d'env : `AI_GATEWAY_API_KEY`
+- Voir `.claude/skills/ai-sdk.md` pour les détails d'implémentation
+
+### Déploiement Vercel (OBLIGATOIRE)
+
+Le projet sera déployé sur Vercel. Toutes les solutions techniques doivent être compatibles :
+
+- **Serverless-first** — pas de serveurs persistants, pas de WebSockets natifs (utiliser Vercel AI SDK streaming ou Ably/Pusher si besoin)
+- **Edge-compatible quand possible** — préférer les API routes Edge pour la performance
+- **Vercel-native services** — préférer Vercel Blob (uploads), Vercel KV (cache), Vercel Postgres (DB) ou services déjà dans la stack (Neon)
+- **Pas de process long** — les fonctions serverless ont un timeout (max 60s sur Pro, 10s sur Hobby)
+- **Variables d'environnement** via `vercel env` — jamais de `.env` committé
+
 ## Règles importantes
 
 1. **Pas de jargon technique dans USER-STORIES.md** - C'est pour le client
@@ -193,6 +216,8 @@ Une fois que tu as terminé la phase de recherche ET produit les livrables :
 5. **Estimer la complexité** - Aide à prioriser
 6. **TOUJOURS sauvegarder les ressources trouvées** - Le knowledge est un asset du projet
 7. **Rechercher AVANT de produire** - Pas de user stories sans recherche préalable
+8. **TOUJOURS utiliser le Vercel AI Gateway** - Pas de provider direct pour l'AI
+9. **Vercel-compatible** - Toute solution technique doit tourner sur Vercel
 
 ## Exemples d'inputs et comment réagir
 

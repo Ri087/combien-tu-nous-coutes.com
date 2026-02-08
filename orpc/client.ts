@@ -13,32 +13,12 @@ declare global {
   var $client: RouterClient<typeof appRouter> | undefined;
 }
 
-const READ_OPERATIONS_REGEX = /^(?:get|find|list|search)(?:[A-Z].*)?$/;
-
 const link = new RPCLink({
   url: () => {
     if (typeof window === "undefined") {
       throw new Error("RPCLink is not allowed on the server side.");
     }
     return `${window.location.origin}/api/rpc`;
-  },
-  method: ({ context }, path) => {
-    // Use GET for cached responses
-    if (context?.cache) {
-      return "GET";
-    }
-
-    // Use GET for rendering requests
-    if (typeof window === "undefined") {
-      return "GET";
-    }
-
-    // Use GET for read-like operations
-    if (path.at(-1)?.match(READ_OPERATIONS_REGEX)) {
-      return "GET";
-    }
-
-    return "POST";
   },
   plugins: [
     new DedupeRequestsPlugin({

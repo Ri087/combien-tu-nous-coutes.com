@@ -112,27 +112,29 @@ pnpm db:generate && pnpm db:migrate  # Migrations (prod)
 
 ### API (oRPC)
 
-Créer les procedures dans `/orpc/` :
+Créer les procedures dans `/server/routers/` et les enregistrer dans `_app.ts` :
 
 ```typescript
-// orpc/projects.ts
+// server/routers/projects.ts
 import { protectedProcedure } from '@/server/procedure/protected.procedure';
 import { z } from 'zod';
 
 export const projectsRouter = {
+  // ✅ Lecture → TOUJOURS ajouter .route({ method: 'GET' })
   list: protectedProcedure
+    .route({ method: 'GET' })
     .input(z.object({ limit: z.number().optional() }))
-    .query(async ({ ctx, input }) => {
-      // ctx.user est disponible (authenticated)
+    .handler(async ({ ctx, input }) => {
       return db.query.projects.findMany({
         where: eq(projects.userId, ctx.user.id),
         limit: input.limit ?? 10,
       });
     }),
 
+  // ✅ Écriture → PAS de .route() (POST par défaut)
   create: protectedProcedure
     .input(z.object({ name: z.string().min(1) }))
-    .mutation(async ({ ctx, input }) => {
+    .handler(async ({ ctx, input }) => {
       return db.insert(projects).values({
         name: input.name,
         userId: ctx.user.id,
@@ -140,6 +142,12 @@ export const projectsRouter = {
     }),
 };
 ```
+
+**Règles oRPC importantes :**
+- **TOUJOURS** utiliser `.route({ method: 'GET' })` pour les procedures de lecture (get, list, find, search)
+- **NE PAS** mettre `.route()` pour les mutations (create, update, delete) → POST par défaut
+- Utiliser `.handler()` (pas `.query()` ou `.mutation()` — ça n'existe pas dans oRPC)
+- Le serveur utilise `StrictGetMethodPlugin` : un GET sans `.route({ method: 'GET' })` = **405 error**
 
 ### Validation
 
