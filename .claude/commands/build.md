@@ -32,7 +32,7 @@ Pour **chaque feature TODO**, crée 3 tâches avec `TaskCreate` :
 
 ### Tâche Backend (si applicable)
 - **Subject** : `[Backend] Feature: <nom>`
-- **Description** : Schema DB + Validators Zod + Router oRPC + Enregistrement dans _app.ts
+- **Description** : Schema DB + Validators Zod + Router oRPC (`.route({ method: 'GET' })` pour lectures, `.handler()` pour tout) + Enregistrement dans _app.ts
 - **ActiveForm** : `Implementing <nom> backend`
 
 ### Tâche Frontend
@@ -59,6 +59,12 @@ Tu es le backend developer. Voici tes tâches assignées :
 [Liste des tâches backend avec IDs]
 
 RÉFÉRENCE : Consulte impulse-studio/nextjs-boilerplate via DeepWiki pour les patterns oRPC/Drizzle.
+
+RÈGLES oRPC CRITIQUES :
+- Utilise .handler() — PAS .query() ou .mutation() (n'existent pas)
+- Procedures de lecture (get, list, find, search) → .route({ method: 'GET' })
+- Mutations (create, update, delete) → PAS de .route() (POST par défaut)
+- Le serveur a StrictGetMethodPlugin : un GET sans .route({ method: 'GET' }) = 405
 
 Pour chaque tâche :
 1. Marque-la in_progress avec TaskUpdate
