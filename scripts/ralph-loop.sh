@@ -1,30 +1,64 @@
 #!/bin/bash
 
 # =============================================================================
-# RALPH LOOP - Fait tourner Claude Code jusqu'à complétion du projet
+# RALPH LOOP v2 — Self-Healing Autonomous Development
+# Two modes: --spec (FEATURES.md) and --linear (Linear issues)
 # =============================================================================
 
-# Configuration
-MAX_ITERATIONS=20          # Sécurité : max 20 boucles (chaque itération est plus productive avec Agent Teams)
-SLEEP_BETWEEN=5            # Pause entre les itérations (secondes)
-ITERATION_TIMEOUT=7200     # Timeout par itération (120 min — Agent Teams prend plus de temps)
-PROJECT_DIR="${1:-.}"      # Dossier du projet (défaut: dossier courant)
+set -euo pipefail
 
-# Couleurs pour le terminal
+# --- Configuration ---
+MODE="spec"
+MAX_ITERATIONS=100
+SLEEP_BETWEEN=5
+ITERATION_TIMEOUT=7200  # 2 hours per iteration
+PROJECT_DIR="."
+
+# --- Parse args ---
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --spec)    MODE="spec"; shift ;;
+        --linear)  MODE="linear"; shift ;;
+        --max)     MAX_ITERATIONS="$2"; shift 2 ;;
+        --timeout) ITERATION_TIMEOUT="$2"; shift 2 ;;
+        --sleep)   SLEEP_BETWEEN="$2"; shift 2 ;;
+        --dir)     PROJECT_DIR="$2"; shift 2 ;;
+        -h|--help)
+            echo "Usage: ralph-loop.sh [OPTIONS] [PROJECT_DIR]"
+            echo ""
+            echo "Modes:"
+            echo "  --spec      Use FEATURES.md as source of truth (default)"
+            echo "  --linear    Use Linear issues as source of truth"
+            echo ""
+            echo "Options:"
+            echo "  --max N         Max iterations (default: 100)"
+            echo "  --timeout N     Seconds per iteration (default: 7200)"
+            echo "  --sleep N       Seconds between iterations (default: 5)"
+            echo "  --dir PATH      Project directory (default: .)"
+            echo ""
+            exit 0
+            ;;
+        *) PROJECT_DIR="$1"; shift ;;
+    esac
+done
+
+# --- Colors ---
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 DIM='\033[2m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-# Fichier de statut que Claude va mettre à jour
+# --- File paths ---
 STATUS_FILE="$PROJECT_DIR/RALPH_STATUS.md"
+PROGRESS_FILE="$PROJECT_DIR/claude-progress.md"
 LOG_DIR="$PROJECT_DIR/.ralph"
 mkdir -p "$LOG_DIR"
 
-# Compteurs pour le circuit breaker
+# --- Counters ---
 ITERATION=0
 NO_CHANGE_COUNT=0
 LAST_FILE_HASH=""
@@ -56,7 +90,6 @@ print_progress_bar() {
 
     local total=$(grep -c '\- \[.\]' "$file" 2>/dev/null || echo 0)
     local done=$(grep -c '\- \[x\]' "$file" 2>/dev/null || echo 0)
-
     if [ "$total" -eq 0 ]; then return; fi
 
     local pct=$((done * 100 / total))
@@ -64,9 +97,27 @@ print_progress_bar() {
     local empty=$((20 - filled))
 
     printf "  ${BLUE}["
-    printf "%0.s█" $(seq 1 $filled 2>/dev/null)
-    printf "%0.s░" $(seq 1 $empty 2>/dev/null)
+    for i in $(seq 1 $filled 2>/dev/null); do printf "#"; done
+    for i in $(seq 1 $empty 2>/dev/null); do printf "."; done
     printf "]${NC} %d%% (%d/%d features)\n" "$pct" "$done" "$total"
+}
+
+check_build_between_iterations() {
+    echo -e "${DIM}  Running build check...${NC}"
+    local build_output
+    build_output=$(cd "$PROJECT_DIR" && pnpm build 2>&1) || true
+    local build_exit=$?
+
+    if [ $build_exit -ne 0 ]; then
+        echo -e "  ${RED}Build FAILED${NC} — will be fixed in next iteration"
+        # Save build errors to a file for next iteration
+        echo "$build_output" | tail -30 > "$LOG_DIR/last-build-errors.txt"
+        return 1
+    else
+        echo -e "  ${GREEN}Build OK${NC}"
+        rm -f "$LOG_DIR/last-build-errors.txt"
+        return 0
+    fi
 }
 
 print_iteration_summary() {
@@ -75,119 +126,289 @@ print_iteration_summary() {
     local duration=$(elapsed_since "$iter_start")
 
     echo ""
-    echo -e "${DIM}┌─────────────────────────────────────────${NC}"
-    echo -e "${DIM}│${NC} ${BOLD}Résumé iteration $ITERATION${NC}"
-    echo -e "${DIM}│${NC} Durée: $duration"
+    echo -e "${DIM}+---------------------------------------------${NC}"
+    echo -e "${DIM}|${NC} ${BOLD}Iteration $ITERATION summary${NC}"
+    echo -e "${DIM}|${NC} Duration: $duration"
 
-    # Fichiers modifiés depuis le début de l'itération
-    local changed_files=$(git diff --name-only HEAD 2>/dev/null | head -10)
-    local changed_count=$(git diff --name-only HEAD 2>/dev/null | wc -l | tr -d ' ')
+    # Files changed since last commit
+    local changed_count
+    changed_count=$(cd "$PROJECT_DIR" && git diff --name-only HEAD 2>/dev/null | wc -l | tr -d ' ')
 
     if [ "$changed_count" -gt 0 ]; then
-        echo -e "${DIM}│${NC} Fichiers modifiés: $changed_count"
-        echo "$changed_files" | while read -r f; do
-            echo -e "${DIM}│${NC}   ${GREEN}+${NC} $f"
+        echo -e "${DIM}|${NC} Files modified: $changed_count"
+        cd "$PROJECT_DIR" && git diff --name-only HEAD 2>/dev/null | head -10 | while read -r f; do
+            echo -e "${DIM}|${NC}   ${GREEN}+${NC} $f"
         done
         if [ "$changed_count" -gt 10 ]; then
-            echo -e "${DIM}│${NC}   ... et $((changed_count - 10)) autres"
+            echo -e "${DIM}|${NC}   ... and $((changed_count - 10)) more"
         fi
     else
-        echo -e "${DIM}│${NC} ${YELLOW}Aucun fichier modifié${NC}"
+        echo -e "${DIM}|${NC} ${YELLOW}No files modified${NC}"
     fi
 
-    # Commits depuis le début de l'itération
-    local new_commits=$(git log --oneline --since="$(date -v-${ITERATION_TIMEOUT}S '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date -d "-${ITERATION_TIMEOUT} seconds" '+%Y-%m-%d %H:%M:%S' 2>/dev/null)" 2>/dev/null | head -5)
+    # Recent commits
+    local new_commits
+    new_commits=$(cd "$PROJECT_DIR" && git log --oneline -5 2>/dev/null | head -5)
     if [ -n "$new_commits" ]; then
-        echo -e "${DIM}│${NC} Commits:"
+        echo -e "${DIM}|${NC} Recent commits:"
         echo "$new_commits" | while read -r c; do
-            echo -e "${DIM}│${NC}   ${BLUE}•${NC} $c"
+            echo -e "${DIM}|${NC}   ${BLUE}*${NC} $c"
         done
     fi
 
-    # Progress
-    echo -e "${DIM}│${NC}"
-    echo -ne "${DIM}│${NC} Progress: "
+    echo -e "${DIM}|${NC}"
+    echo -ne "${DIM}|${NC} Progress: "
     echo "$(count_features) features"
     print_progress_bar
-    echo -e "${DIM}└─────────────────────────────────────────${NC}"
+    echo -e "${DIM}+---------------------------------------------${NC}"
 }
 
-# --- Main ---
+# --- Build the prompt based on mode ---
+
+build_spec_prompt() {
+    local build_errors=""
+    if [ -f "$LOG_DIR/last-build-errors.txt" ]; then
+        build_errors=$(cat "$LOG_DIR/last-build-errors.txt")
+    fi
+
+    cat <<PROMPT
+Tu es le Lead Coordinator d'une equipe Agent Teams autonome.
+Mode: SPEC (FEATURES.md)
+
+## ETAPE 1 — Contexte
+
+1. Lis \`claude-progress.md\` (s'il existe) pour savoir ou en est le projet
+2. Lis \`FEATURES.md\` pour voir les features a implementer (marquees [ ])
+3. Lis \`CLAUDE.md\` pour comprendre les conventions du repo
+4. Lis \`.claude/resources/impulse-repos.md\` pour les repos de reference
+
+$([ -n "$build_errors" ] && echo "## ERREURS DE BUILD A CORRIGER EN PRIORITE
+Le build a echoue a la derniere iteration. Corrige ces erreurs AVANT de commencer une nouvelle feature:
+\`\`\`
+$build_errors
+\`\`\`
+Envoie le qa-fixer pour corriger ces erreurs en premier.
+")
+
+## ETAPE 2 — Workflow par feature
+
+Pour CHAQUE feature TODO dans FEATURES.md:
+
+1. **Cree les taches** avec TaskCreate:
+   - [Backend] schema + validators + router
+   - [Frontend] pages + composants + hooks
+   - [Review] verification + build
+
+2. **Delegue aux agents** via SendMessage:
+   - \`backend-dev\`: schema DB, validators Zod, router oRPC
+   - \`frontend-dev\`: pages, composants AlignUI, hooks
+   - \`code-reviewer\`: review qualite + pnpm build
+   - \`qa-fixer\`: correction des erreurs si le reviewer en trouve
+
+3. **Self-healing**: Si le build echoue apres une feature:
+   - Envoie \`qa-fixer\` avec les erreurs de build
+   - Attends la correction
+   - Relance pnpm build
+   - Repete jusqu'a ce que le build passe
+
+4. **Marque la feature [x]** dans FEATURES.md quand elle est validee
+5. **Commit** les changements
+
+## ETAPE 3 — Memoire
+
+Mets a jour \`claude-progress.md\` apres chaque feature:
+- Features completees avec details
+- Feature en cours
+- Features restantes
+- Problemes rencontres et solutions
+- Decisions techniques
+
+## ETAPE 4 — Exit
+
+- Quand TOUTES les features sont [x]: ecris \`EXIT_SIGNAL: true\` dans RALPH_STATUS.md
+- Si bloque sans solution: ecris \`BLOCKED: <raison>\` dans RALPH_STATUS.md
+
+## Regles
+
+- Tu ne codes JAMAIS — tu orchestres uniquement
+- Respecte le file ownership entre agents
+- Parallelise les features independantes
+- Chaque feature DOIT passer pnpm build
+- Genere les migrations DB: pnpm db:generate avant le build final
+- Fais des commits reguliers (un par feature minimum)
+
+Commence maintenant!
+PROMPT
+}
+
+build_linear_prompt() {
+    local build_errors=""
+    if [ -f "$LOG_DIR/last-build-errors.txt" ]; then
+        build_errors=$(cat "$LOG_DIR/last-build-errors.txt")
+    fi
+
+    cat <<PROMPT
+Tu es le Lead Coordinator d'une equipe Agent Teams autonome.
+Mode: LINEAR (Issues Linear)
+
+## ETAPE 1 — Contexte
+
+1. Lis \`claude-progress.md\` (s'il existe) pour savoir ou en est le projet
+2. Utilise le **MCP Linear** pour lister les issues du projet (status != Done)
+3. Lis \`CLAUDE.md\` pour comprendre les conventions du repo
+4. Lis \`.claude/resources/impulse-repos.md\` pour les repos de reference
+
+$([ -n "$build_errors" ] && echo "## ERREURS DE BUILD A CORRIGER EN PRIORITE
+Le build a echoue a la derniere iteration. Corrige ces erreurs AVANT de commencer une nouvelle issue:
+\`\`\`
+$build_errors
+\`\`\`
+Envoie le qa-fixer pour corriger ces erreurs en premier.
+")
+
+## ETAPE 2 — Workflow par issue Linear
+
+Pour CHAQUE issue Linear (priorite la plus haute en premier):
+
+1. **Lis l'issue** via MCP Linear: titre, description, criteres d'acceptation
+2. **Cree les taches** avec TaskCreate (backend, frontend, review)
+3. **Delegue aux agents** via SendMessage:
+   - \`backend-dev\`: schema DB, validators Zod, router oRPC
+   - \`frontend-dev\`: pages, composants AlignUI, hooks
+   - \`code-reviewer\`: review qualite + pnpm build
+   - \`qa-fixer\`: correction des erreurs si le reviewer en trouve
+
+4. **Self-healing**: Si le build echoue:
+   - Envoie \`qa-fixer\` avec les erreurs
+   - Itere jusqu'au build clean
+
+5. **Mets a jour Linear** via MCP:
+   - Status: Done
+   - Commentaire: resume de l'implementation
+
+6. **Commit** avec reference Linear (ex: "feat: implement project CRUD [LIN-123]")
+
+## ETAPE 3 — Memoire
+
+Mets a jour \`claude-progress.md\` apres chaque issue:
+- Issues completees (avec ID Linear)
+- Issue en cours
+- Issues restantes
+- Problemes et solutions
+- Decisions techniques
+
+## ETAPE 4 — Exit
+
+- Quand TOUTES les issues sont Done sur Linear: ecris \`EXIT_SIGNAL: true\` dans RALPH_STATUS.md
+- Si bloque sans solution: ecris \`BLOCKED: <raison>\` dans RALPH_STATUS.md
+
+## Regles
+
+- Tu ne codes JAMAIS — tu orchestres uniquement
+- Respecte le file ownership entre agents
+- Parallelise les issues independantes
+- Chaque issue DOIT passer pnpm build
+- Genere les migrations DB si besoin
+- Fais des commits reguliers avec references Linear
+- Mets a jour le statut Linear pour chaque issue
+
+Commence maintenant!
+PROMPT
+}
+
+# === MAIN ===
 
 echo ""
-echo -e "${GREEN}${BOLD}🏭 RALPH LOOP - MVP Factory${NC}"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo -e "  📁 Projet:       ${BOLD}$PROJECT_DIR${NC}"
-echo -e "  🔄 Max iter:     $MAX_ITERATIONS"
-echo -e "  ⏱  Timeout/iter: ${ITERATION_TIMEOUT}s"
-echo -e "  📋 Features:     $(count_features)"
-echo -e "  🤖 Agent Teams:  ${GREEN}ENABLED${NC}"
+echo -e "${GREEN}${BOLD}  RALPH LOOP v2 — Self-Healing Autonomous Dev${NC}"
+echo "================================================"
+echo -e "  Project:     ${BOLD}$(basename "$(cd "$PROJECT_DIR" && pwd)")${NC}"
+echo -e "  Mode:        ${CYAN}${BOLD}$MODE${NC}"
+echo -e "  Max iter:    $MAX_ITERATIONS"
+echo -e "  Timeout:     ${ITERATION_TIMEOUT}s/iter"
+echo -e "  Features:    $(count_features)"
+echo -e "  Agent Teams: ${GREEN}ENABLED${NC}"
+echo -e "  Self-Heal:   ${GREEN}ENABLED${NC}"
 print_progress_bar
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "================================================"
 echo ""
 
-# Crée le fichier de statut initial
+# Initialize status file
 cat > "$STATUS_FILE" << 'EOF'
 # Ralph Status
 
 ## Current State
 - Status: IN_PROGRESS
+- Mode: SPEC
 - EXIT_SIGNAL: false
 
-## Progress Log
+## Iteration Log
 EOF
 
-# Le prompt qui sera donné à Claude Code à chaque itération
-PROMPT="Tu es le Lead Coordinator d'une équipe Agent Teams.
+# Update mode in status file
+sed -i "s/Mode: SPEC/Mode: ${MODE^^}/" "$STATUS_FILE" 2>/dev/null || \
+    sed -i '' "s/Mode: SPEC/Mode: ${MODE^^}/" "$STATUS_FILE" 2>/dev/null || true
 
-INSTRUCTIONS:
-1. Utilise la commande /build pour orchestrer l'équipe
-2. Tu as 3 agents à ta disposition : backend-dev, frontend-dev, code-reviewer
-3. Délègue tout le code aux agents spécialisés via SendMessage
-4. Utilise TaskCreate pour créer les tâches et TaskList pour monitorer
-5. Si TOUTES les features sont [x], mets EXIT_SIGNAL: true dans RALPH_STATUS.md
+# Initialize progress file if it doesn't exist
+if [ ! -f "$PROGRESS_FILE" ]; then
+    cat > "$PROGRESS_FILE" << 'EOF'
+# Claude Progress
 
-RESSOURCES IMPULSE STUDIO (OBLIGATOIRE):
-- Lis .claude/resources/impulse-repos.md pour connaître les repos de référence
-- Les agents DOIVENT s'inspirer des templates Impulse Studio pour chaque feature
-- Frontend : lire .claude/resources/alignui-ai-template-patterns.md, alignui-ui-patterns.md, finance-template-ui-patterns.md AVANT de coder
-- Backend : consulter impulse-studio/nextjs-boilerplate via DeepWiki (mcp__devin__read_wiki_contents)
-- Mapper chaque feature au template le plus pertinent (dashboard→marketing/finance, chat→ai-template, forms→hr)
+> This file is the shared memory between Ralph Loop iterations.
+> Claude reads this at the start of each iteration to know where the project stands.
+> Claude updates this at the end of each iteration.
 
-IMPORTANT:
-- Tu ne codes JAMAIS toi-même — tu orchestres uniquement
-- Respecte le file ownership entre agents
-- Parallélise les features indépendantes
-- Chaque feature doit passer pnpm build avant d'être marquée DONE
-- Génère les migrations DB avec pnpm db:generate avant le build final
-- Fais des commits réguliers
+## Last Updated
+Not started yet
 
-Commence maintenant avec /build."
+## Completed Features
+None yet
 
-# === BOUCLE PRINCIPALE ===
+## Current Feature
+None — starting fresh
+
+## Remaining Features
+See FEATURES.md
+
+## Decisions & Notes
+None yet
+
+## Known Issues
+None
+EOF
+fi
+
+# === MAIN LOOP ===
+
 while [ $ITERATION -lt $MAX_ITERATIONS ]; do
     ITERATION=$((ITERATION + 1))
     ITER_START=$(date +%s)
     ITER_LOG="$LOG_DIR/iteration-$ITERATION.log"
 
     echo ""
-    echo -e "${YELLOW}${BOLD}━━━ Iteration $ITERATION/$MAX_ITERATIONS ━━━${NC}  ${DIM}[total: $(elapsed_since $START_TIME)]${NC}"
-    echo -e "$(date '+%H:%M:%S') - Lancement de Claude Code..."
+    echo -e "${YELLOW}${BOLD}=== Iteration $ITERATION/$MAX_ITERATIONS ===${NC}  ${DIM}[total: $(elapsed_since $START_TIME)]${NC}"
+    echo -e "$(date '+%H:%M:%S') — Launching Claude Code ($MODE mode)..."
     echo -e "${DIM}Log: $ITER_LOG${NC}"
     echo ""
 
-    # Log l'itération
-    echo "- [$ITERATION] $(date '+%Y-%m-%d %H:%M:%S')" >> "$STATUS_FILE"
+    # Log iteration start
+    echo "- [$ITERATION] $(date '+%Y-%m-%d %H:%M:%S') — $MODE mode" >> "$STATUS_FILE"
 
-    # Snapshot git pour comparer après
-    GIT_BEFORE=$(git rev-parse HEAD 2>/dev/null)
+    # Git snapshot before iteration
+    GIT_BEFORE=$(cd "$PROJECT_DIR" && git rev-parse HEAD 2>/dev/null)
 
-    # Lance Claude Code avec output visible + log
+    # Build the prompt based on mode
+    if [ "$MODE" = "linear" ]; then
+        PROMPT=$(build_linear_prompt)
+    else
+        PROMPT=$(build_spec_prompt)
+    fi
+
+    # Launch Claude Code
     cd "$PROJECT_DIR"
     CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude --dangerously-skip-permissions -p "$PROMPT" 2>&1 | tee "$ITER_LOG" &
     CLAUDE_PID=$!
 
-    # Watchdog timeout en background
+    # Watchdog timeout
     (
         sleep "$ITERATION_TIMEOUT"
         if kill -0 "$CLAUDE_PID" 2>/dev/null; then
@@ -196,53 +417,79 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
     ) &
     WATCHDOG_PID=$!
 
-    # Attend la fin de Claude
-    wait "$CLAUDE_PID" 2>/dev/null
+    # Wait for Claude to finish
+    wait "$CLAUDE_PID" 2>/dev/null || true
     CLAUDE_EXIT=$?
 
-    # Nettoie le watchdog s'il tourne encore
+    # Kill watchdog
     kill "$WATCHDOG_PID" 2>/dev/null
-    wait "$WATCHDOG_PID" 2>/dev/null
+    wait "$WATCHDOG_PID" 2>/dev/null || true
 
-    # Timeout détecté (killed = 137)
+    # Check for timeout
     if [ $CLAUDE_EXIT -eq 137 ] || [ $CLAUDE_EXIT -eq 143 ]; then
         echo ""
-        echo -e "${RED}⏱  Timeout atteint (${ITERATION_TIMEOUT}s) — passage à l'itération suivante${NC}"
+        echo -e "${RED}  Timeout reached (${ITERATION_TIMEOUT}s) — moving to next iteration${NC}"
     fi
 
-    # Résumé de l'itération
+    # Print iteration summary
     print_iteration_summary "$ITER_START" "$ITER_LOG"
 
-    # Vérifie le signal de sortie
+    # --- Self-healing: build check between iterations ---
+    echo ""
+    echo -e "${CYAN}${BOLD}  Self-Heal Check${NC}"
+    check_build_between_iterations
+    BUILD_OK=$?
+
+    # --- Check exit signal ---
     if grep -q "EXIT_SIGNAL: true" "$STATUS_FILE" 2>/dev/null; then
+        # Final build verification
         echo ""
-        echo -e "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "${GREEN}${BOLD}  ✅ PROJET TERMINÉ !${NC}"
-        echo -e "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo ""
-        echo -e "  Iterations:  $ITERATION"
-        echo -e "  Durée totale: $(elapsed_since $START_TIME)"
-        echo -e "  Features:    $(count_features)"
-        print_progress_bar
-        echo -e "  Logs:        $LOG_DIR/"
-        echo ""
-        exit 0
+        echo -e "${CYAN}  Final build verification...${NC}"
+        cd "$PROJECT_DIR"
+        if pnpm build 2>&1 | tail -5; then
+            echo ""
+            echo -e "${GREEN}${BOLD}================================================${NC}"
+            echo -e "${GREEN}${BOLD}  PROJECT COMPLETE!${NC}"
+            echo -e "${GREEN}${BOLD}================================================${NC}"
+            echo ""
+            echo -e "  Iterations:   $ITERATION"
+            echo -e "  Total time:   $(elapsed_since $START_TIME)"
+            echo -e "  Features:     $(count_features)"
+            print_progress_bar
+            echo -e "  Logs:         $LOG_DIR/"
+            echo ""
+            exit 0
+        else
+            echo -e "${YELLOW}  Final build failed — removing EXIT_SIGNAL for one more iteration${NC}"
+            sed -i "s/EXIT_SIGNAL: true/EXIT_SIGNAL: false/" "$STATUS_FILE" 2>/dev/null || \
+                sed -i '' "s/EXIT_SIGNAL: true/EXIT_SIGNAL: false/" "$STATUS_FILE" 2>/dev/null || true
+        fi
     fi
 
-    # Circuit breaker : vérifie si des fichiers ont changé
-    CURRENT_HASH=$(find "$PROJECT_DIR" -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.md" \) -not -path "*/node_modules/*" -not -path "*/.next/*" 2>/dev/null | sort | xargs md5sum 2>/dev/null | md5sum)
+    # --- Check for BLOCKED signal ---
+    if grep -q "BLOCKED:" "$STATUS_FILE" 2>/dev/null; then
+        BLOCK_REASON=$(grep "BLOCKED:" "$STATUS_FILE" | tail -1)
+        echo ""
+        echo -e "${RED}${BOLD}  BLOCKED: $BLOCK_REASON${NC}"
+        echo "Check $STATUS_FILE and $LOG_DIR/"
+        exit 2
+    fi
+
+    # --- Circuit breaker: detect no-change loops ---
+    CURRENT_HASH=$(cd "$PROJECT_DIR" && find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.md" \) -not -path "*/node_modules/*" -not -path "*/.next/*" -not -path "*/.ralph/*" 2>/dev/null | sort | xargs md5sum 2>/dev/null | md5sum)
 
     if [ "$CURRENT_HASH" = "$LAST_FILE_HASH" ]; then
         NO_CHANGE_COUNT=$((NO_CHANGE_COUNT + 1))
         echo ""
-        echo -e "${RED}⚠️  Pas de changement détecté (${NO_CHANGE_COUNT}/3)${NC}"
+        echo -e "${RED}  No changes detected (${NO_CHANGE_COUNT}/3)${NC}"
 
         if [ $NO_CHANGE_COUNT -ge 3 ]; then
             echo ""
-            echo -e "${RED}${BOLD}🛑 CIRCUIT BREAKER: 3 itérations sans changement${NC}"
-            echo "Le projet semble bloqué. Vérifiez:"
-            echo "  - $STATUS_FILE"
-            echo "  - $LOG_DIR/"
+            echo -e "${RED}${BOLD}  CIRCUIT BREAKER: 3 iterations without changes${NC}"
+            echo "  Project seems stuck. Check:"
+            echo "    - $STATUS_FILE"
+            echo "    - $PROGRESS_FILE"
+            echo "    - $LOG_DIR/"
             exit 1
         fi
     else
@@ -251,17 +498,17 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
 
     LAST_FILE_HASH="$CURRENT_HASH"
 
-    # Pause avant la prochaine itération
+    # Pause before next iteration
     echo ""
-    echo -e "${DIM}Pause de ${SLEEP_BETWEEN}s...${NC}"
+    echo -e "${DIM}  Pausing ${SLEEP_BETWEEN}s...${NC}"
     sleep $SLEEP_BETWEEN
 
 done
 
 echo ""
-echo -e "${RED}${BOLD}🛑 MAX ITERATIONS ATTEINT ($MAX_ITERATIONS)${NC}"
-echo "Durée totale: $(elapsed_since $START_TIME)"
-echo "Features: $(count_features)"
+echo -e "${RED}${BOLD}  MAX ITERATIONS REACHED ($MAX_ITERATIONS)${NC}"
+echo "  Total time: $(elapsed_since $START_TIME)"
+echo "  Features:   $(count_features)"
 print_progress_bar
-echo "Vérifiez $STATUS_FILE et $LOG_DIR/"
+echo "  Check: $STATUS_FILE, $PROGRESS_FILE, $LOG_DIR/"
 exit 1

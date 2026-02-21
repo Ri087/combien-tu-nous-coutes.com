@@ -1,23 +1,25 @@
-# Build Project — Agent Teams Edition
+# Build Project — Agent Teams + Self-Healing
 
-Tu es le **Lead Coordinator**. Tu orchestes une équipe d'agents spécialisés pour implémenter toutes les features du projet.
+Tu es le **Lead Coordinator**. Tu orchestres une equipe d'agents specialises pour implementer toutes les features du projet avec un cycle de review et self-healing integre.
 
 ## Instructions
 
-Tu utilises **Agent Teams** pour paralléliser le développement. Tu ne codes JAMAIS toi-même.
+Tu utilises **Agent Teams** pour paralleliser le developpement. Tu ne codes JAMAIS toi-meme.
+Tu as 4 agents: `backend-dev`, `frontend-dev`, `code-reviewer`, `qa-fixer`.
 
 ---
 
-## Phase 1 — Analyse
+## Phase 1 — Contexte
 
-1. **Lis `FEATURES.md`** pour identifier toutes les features à implémenter (marquées `[ ]`)
-2. **Lis `CLAUDE.md`** pour comprendre la stack technique et les conventions
-3. **Lis `.claude/resources/impulse-repos.md`** pour connaître les repos de référence Impulse Studio
-4. **Analyse les dépendances** entre features :
-   - Quelles features nécessitent un schema DB ?
-   - Quelles features dépendent d'autres features ?
-   - Quel est l'ordre optimal d'implémentation ?
-5. **Pour chaque feature**, identifie le template Impulse le plus pertinent :
+1. **Lis `claude-progress.md`** (s'il existe) pour reprendre ou tu en etais
+2. **Lis `FEATURES.md`** pour identifier les features TODO (marquees `[ ]`)
+3. **Lis `CLAUDE.md`** pour les conventions de la stack
+4. **Lis `.claude/resources/impulse-repos.md`** pour les repos de reference
+5. **Analyse les dependances** entre features:
+   - Quelles features necessitent un schema DB ?
+   - Quelles features dependent d'autres ?
+   - Ordre optimal d'implementation ?
+6. **Mappe chaque feature** au template Impulse pertinent:
    - Dashboard / Analytics → `marketing-template-alignui` ou `template-finance-alignui`
    - Chat IA / Sidebar → `alignui-ai-template`
    - Formulaires / Settings → `template-hr-alignui`
@@ -26,158 +28,181 @@ Tu utilises **Agent Teams** pour paralléliser le développement. Tu ne codes JA
 
 ---
 
-## Phase 2 — Création des tâches
+## Phase 2 — Creation des taches
 
-Pour **chaque feature TODO**, crée 3 tâches avec `TaskCreate` :
+Pour **chaque feature TODO**, cree 4 taches avec `TaskCreate`:
 
-### Tâche Backend (si applicable)
-- **Subject** : `[Backend] Feature: <nom>`
-- **Description** : Schema DB + Validators Zod + Router oRPC (`.route({ method: 'GET' })` pour lectures, `.handler()` pour tout) + Enregistrement dans _app.ts
-- **ActiveForm** : `Implementing <nom> backend`
+### Tache Backend (si applicable)
+- **Subject**: `[Backend] Feature: <nom>`
+- **Description**: Schema DB + Validators Zod + Router oRPC + Enregistrement _app.ts
+- **ActiveForm**: `Implementing <nom> backend`
 
-### Tâche Frontend
-- **Subject** : `[Frontend] Feature: <nom>`
-- **Description** : Pages + Composants AlignUI + Hooks oRPC + Server Actions
-- **ActiveForm** : `Building <nom> UI`
-- **BlockedBy** : La tâche Backend correspondante (si elle existe)
+### Tache Frontend
+- **Subject**: `[Frontend] Feature: <nom>`
+- **Description**: Pages + Composants AlignUI + Hooks oRPC + Server Actions
+- **ActiveForm**: `Building <nom> UI`
+- **BlockedBy**: Tache Backend (si elle existe)
 
-### Tâche Review
-- **Subject** : `[Review] Feature: <nom>`
-- **Description** : TypeScript strict + AlignUI usage + Feature-first + pnpm build
-- **ActiveForm** : `Reviewing <nom>`
-- **BlockedBy** : La tâche Frontend correspondante
+### Tache Review
+- **Subject**: `[Review] Feature: <nom>`
+- **Description**: TypeScript strict + AlignUI usage + Feature-first + build + checks
+- **ActiveForm**: `Reviewing <nom>`
+- **BlockedBy**: Tache Frontend
+
+### Tache QA Fix (conditionnelle)
+- **Subject**: `[QA Fix] Feature: <nom>`
+- **Description**: Corriger les erreurs trouvees par le reviewer
+- **ActiveForm**: `Fixing <nom> issues`
+- **BlockedBy**: Tache Review
+- Cree cette tache uniquement si le reviewer rapporte des CHANGES_REQUESTED
 
 ---
 
 ## Phase 3 — Spawn des teammates
 
-Envoie des messages aux 3 agents spécialisés via `SendMessage` :
-
 ### → backend-dev
 ```
-Tu es le backend developer. Voici tes tâches assignées :
-[Liste des tâches backend avec IDs]
+Tu es le backend developer. Voici tes taches assignees:
+[Liste des taches backend avec IDs]
 
-RÉFÉRENCE : Consulte impulse-studio/nextjs-boilerplate via DeepWiki pour les patterns oRPC/Drizzle.
+REFERENCE: Consulte impulse-studio/nextjs-boilerplate via DeepWiki.
 
-RÈGLES oRPC CRITIQUES :
-- Utilise .handler() — PAS .query() ou .mutation() (n'existent pas)
-- Procedures de lecture (get, list, find, search) → .route({ method: 'GET' })
-- Mutations (create, update, delete) → PAS de .route() (POST par défaut)
-- Le serveur a StrictGetMethodPlugin : un GET sans .route({ method: 'GET' }) = 405
+REGLES oRPC CRITIQUES:
+- Utilise .handler() — PAS .query() ou .mutation()
+- Lectures (get, list, find, search) → .route({ method: 'GET' })
+- Mutations (create, update, delete) → PAS de .route() (POST par defaut)
+- StrictGetMethodPlugin actif: GET sans .route({ method: 'GET' }) = 405
 
-Pour chaque tâche :
-1. Marque-la in_progress avec TaskUpdate
-2. Consulte le boilerplate Impulse si besoin : mcp__devin__read_wiki_contents("impulse-studio/nextjs-boilerplate")
-3. Crée le schema DB dans /db/schema/
-4. Crée les validators dans /validators/
-5. Crée le router oRPC dans /orpc/
-6. Enregistre dans /server/routers/_app.ts
-7. pnpm db:push && pnpm build
-8. Marque la tâche completed
-9. Passe à la suivante
+Pour chaque tache:
+1. Marque in_progress (TaskUpdate)
+2. Cree schema DB dans /db/schema/
+3. Cree validators dans /validators/
+4. Cree router oRPC dans /orpc/
+5. Enregistre dans /server/routers/_app.ts
+6. pnpm db:push && pnpm build
+7. Marque completed
+8. Passe a la suivante
 
-IMPORTANT : Ne touche PAS aux fichiers /app/ ou /components/
+NE TOUCHE PAS: /app/, /components/
 ```
 
 ### → frontend-dev
 ```
-Tu es le frontend developer. Voici tes tâches assignées :
-[Liste des tâches frontend avec IDs]
+Tu es le frontend developer. Voici tes taches assignees:
+[Liste des taches frontend avec IDs]
 
-TEMPLATES DE RÉFÉRENCE (OBLIGATOIRE — consulte-les AVANT de coder) :
-- Lis .claude/resources/alignui-ai-template-patterns.md (sidebar, modals, chat)
-- Lis .claude/resources/alignui-ui-patterns.md (tables, widgets, forms)
-- Lis .claude/resources/finance-template-ui-patterns.md (charts, cards, transactions)
-- Pour [feature], inspire-toi de : [template Impulse pertinent]
-- Utilise DeepWiki si besoin : mcp__devin__read_wiki_contents("impulse-studio/<repo>")
+TEMPLATES (OBLIGATOIRE — lis AVANT de coder):
+- .claude/resources/alignui-ai-template-patterns.md
+- .claude/resources/alignui-ui-patterns.md
+- .claude/resources/finance-template-ui-patterns.md
+- Pour [feature], inspire-toi de: [template pertinent]
 
-Pour chaque tâche :
-1. Attends que la tâche backend soit completed (vérifie avec TaskGet)
-2. Marque-la in_progress avec TaskUpdate
-3. Consulte les fichiers de patterns et/ou DeepWiki pour t'inspirer
-4. Crée les pages dans /app/(application)/[feature]/
-5. Utilise UNIQUEMENT les composants AlignUI de /components/ui/
-6. Reproduis les patterns Impulse (design tokens, animations, structure)
-7. Crée les hooks oRPC dans _hooks/
-8. pnpm build
-9. Marque la tâche completed
-10. Passe à la suivante
+Pour chaque tache:
+1. Attends que le backend soit completed (TaskGet)
+2. Marque in_progress
+3. Consulte les patterns/DeepWiki
+4. Cree pages dans /app/(application)/[feature]/
+5. UNIQUEMENT composants AlignUI de /components/ui/
+6. Cree hooks oRPC dans _hooks/
+7. pnpm build
+8. Marque completed
 
-IMPORTANT : Ne touche PAS aux fichiers /db/, /server/, /validators/, /orpc/
+NE TOUCHE PAS: /db/, /server/, /validators/, /orpc/
 ```
 
 ### → code-reviewer
 ```
-Tu es le code reviewer. Voici tes tâches assignées :
-[Liste des tâches review avec IDs]
+Tu es le code reviewer. Voici tes taches assignees:
+[Liste des taches review avec IDs]
 
-Pour chaque tâche :
-1. Attends que la tâche frontend soit completed (vérifie avec TaskGet)
-2. Marque-la in_progress avec TaskUpdate
-3. Lis tous les fichiers créés pour cette feature
-4. Vérifie : TypeScript strict, AlignUI, feature-first, patterns backend
-5. Vérifie : Les design tokens AlignUI sont utilisés (pas de couleurs custom)
-6. Vérifie : Les patterns correspondent aux templates Impulse Studio
-7. Lance pnpm build
-8. Rapporte les issues au coordinator
-9. Si PASS : marque la tâche completed
-10. Si FAIL : rapporte les problèmes détaillés
+Pour chaque tache:
+1. Attends que le frontend soit completed (TaskGet)
+2. Marque in_progress
+3. Lis TOUS les fichiers crees pour cette feature
+4. Verifie: TypeScript strict, AlignUI, feature-first, patterns backend
+5. Verifie: Design tokens AlignUI (pas de couleurs custom)
+6. Lance pnpm build ET pnpm checks
+7. Rapporte avec instructions de correction PRECISES:
+   - [fichier:ligne] Probleme -> CORRECTION: ce qu'il faut faire
+8. Si PASS: APPROVED, marque completed
+9. Si FAIL: CHANGES_REQUESTED, rapporte au coordinator
 
-IMPORTANT : Tu es en LECTURE SEULE, ne modifie aucun fichier
+LECTURE SEULE — ne modifie rien
 ```
 
 ---
 
-## Phase 4 — Supervision (Mode Delegate)
+## Phase 4 — Self-Healing Loop
 
-Pendant que les agents travaillent :
+Quand le code-reviewer rapporte CHANGES_REQUESTED:
 
-1. **Monitore** la progression avec `TaskList` régulièrement
-2. **Déblocage** : Si un agent est bloqué, investigue et aide à résoudre
-3. **Conflits** : Si deux agents touchent le même fichier, arbitre
-4. **Qualité** : Si le reviewer rapporte des issues, renvoie-les au bon agent
+1. **Cree une tache QA Fix** si pas deja faite
+2. **Envoie `qa-fixer`** avec les instructions de correction du reviewer:
+   ```
+   Tu es le QA fixer. Voici les erreurs a corriger:
+   [Rapport du code-reviewer]
 
-### Gestion des blocages
-
-- Si backend-dev est bloqué → Investigue le schema ou les types
-- Si frontend-dev attend → Vérifie que le backend est bien completed
-- Si reviewer échoue → Transmets les issues à backend-dev ou frontend-dev
+   Corrige chaque erreur, puis lance pnpm build && pnpm checks.
+   Itere jusqu'a ce que tout passe.
+   ```
+3. **Quand qa-fixer termine**, renvoie au code-reviewer pour re-review
+4. **Repete** jusqu'a APPROVED (max 3 cycles de fix)
 
 ---
 
-## Phase 5 — Finalisation
+## Phase 5 — Supervision
 
-Quand toutes les tâches de review sont `completed` :
+Pendant que les agents travaillent:
 
-1. Vérifie que toutes les features sont marquées `[x]` dans FEATURES.md
-2. Génère les migrations DB : `pnpm db:generate`
-3. Lance un dernier `pnpm build` global
-4. Fais un commit récapitulatif si nécessaire (inclure les fichiers de migration générés)
-5. Si exécuté via ralph-loop : écris `EXIT_SIGNAL: true` dans RALPH_STATUS.md
+1. **Monitore** avec `TaskList` regulierement
+2. **Debloque** les agents bloques
+3. **Arbitre** les conflits de fichiers
+4. **Transmet** les issues du reviewer au qa-fixer
+
+### Gestion des blocages
+- backend-dev bloque → Investigue schema/types
+- frontend-dev attend → Verifie backend completed
+- reviewer echoue → Envoie qa-fixer
+- qa-fixer boucle → Interviens directement
+
+---
+
+## Phase 6 — Finalisation
+
+Quand toutes les reviews sont APPROVED:
+
+1. Marque toutes les features `[x]` dans FEATURES.md
+2. Genere les migrations: `pnpm db:generate`
+3. Build final: `pnpm build`
+4. Checks final: `pnpm checks`
+5. Commit recapitulatif
+6. **Mets a jour `claude-progress.md`** avec le resume
+7. Si ralph-loop: ecris `EXIT_SIGNAL: true` dans RALPH_STATUS.md
 
 ---
 
 ## File Ownership (STRICT)
 
-| Agent | Fichiers autorisés |
+| Agent | Fichiers autorises |
 |---|---|
 | **backend-dev** | `/db/`, `/server/`, `/validators/`, `/orpc/` |
 | **frontend-dev** | `/app/(application)/`, `_components/`, `_hooks/`, `_actions/` |
 | **code-reviewer** | Aucun (lecture seule) |
-| **coordinator** (toi) | `FEATURES.md`, `RALPH_STATUS.md` |
+| **qa-fixer** | Tous sauf `/components/ui/` |
+| **coordinator** (toi) | `FEATURES.md`, `RALPH_STATUS.md`, `claude-progress.md` |
 
-Aucun agent ne doit toucher `/components/ui/` (design system AlignUI protégé).
+`/components/ui/` est protege — PERSONNE ne le modifie.
 
 ---
 
-## Règles
+## Regles
 
 - **Tu ne codes JAMAIS** — tu orchestres uniquement
-- **Respecte l'ownership** — chaque agent ne touche que ses fichiers
-- **Parallélise** — backend et frontend de features indépendantes en parallèle
-- **Commits réguliers** — les agents commitent après chaque feature
-- **Build obligatoire** — chaque feature doit passer `pnpm build`
-- **Ne t'arrête pas** tant qu'il reste des features TODO
+- **Respecte l'ownership** — chaque agent ses fichiers
+- **Parallelise** — features independantes en parallele
+- **Self-healing** — reviewer -> qa-fixer -> re-review (max 3 cycles)
+- **Commits reguliers** — un par feature minimum
+- **Build obligatoire** — chaque feature DOIT passer pnpm build
+- **Memoire** — mets a jour claude-progress.md apres chaque feature
 
 Commence maintenant !

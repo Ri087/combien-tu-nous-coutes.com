@@ -22,7 +22,9 @@
     "sync": "git fetch template && git merge template/main",
     "sync:initial": "git fetch template && git merge template/main --allow-unrelated-histories",
     "setup:sync": "git remote get-url template >/dev/null 2>&1 && git remote set-url template https://github.com/impulse-studio/minimal-boilerplate.git || git remote add template https://github.com/impulse-studio/minimal-boilerplate.git",
-    "ralph": "bash scripts/ralph-loop.sh"
+    "ralph": "bash scripts/ralph-loop.sh",
+    "ralph:spec": "bash scripts/ralph-loop.sh --spec",
+    "ralph:linear": "bash scripts/ralph-loop.sh --linear"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",

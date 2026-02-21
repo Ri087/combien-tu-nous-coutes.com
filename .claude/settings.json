@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(jq -r '.tool_input.file_path // empty') && [ -n \"$FILE\" ] && [[ \"$FILE\" =~ \\.(ts|tsx|js|jsx|json|css)$ ]] && pnpm exec biome check --write \"$FILE\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/self-heal-check.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "deny": [
+    "Bash(git commit --no-verify:*)",
+    "Bash(git push --force:*)",
+    "Bash(git reset --hard:*)"
+  ]
+}
