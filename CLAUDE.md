@@ -198,26 +198,52 @@ const projects: any = await getProjects();
 - [ ] Les composants AlignUI sont utilisés
 - [ ] Le code suit la structure feature-first
 
-## Extensions Optionnelles
+## Skills (14 auto-discovered skills with 124 reference guides)
 
-Des skills sont disponibles dans `.claude/skills/` pour activer des fonctionnalités supplémentaires :
+Skills are **auto-discovered** by Claude Code via proper `SKILL.md` format with YAML frontmatter. Claude automatically loads the relevant skill when the task matches its description. Each skill directory contains a `SKILL.md` entry point and detailed reference files.
 
-| Skill | Quand l'utiliser |
-|-------|------------------|
-| `vercel-blob.md` | Upload de fichiers |
-| `ai-sdk.md` | Fonctionnalités AI (chat, génération) |
-| `tiptap.md` | Éditeur rich text |
-| `analytics.md` | Analytics (PostHog) |
-| `redis.md` | Cache, rate limiting |
+### Available Skills
 
-Pour lire un skill :
+| Skill | Refs | Description |
+|-------|------|-------------|
+| `backend-orpc` | 12 | oRPC API: create routers, GET/POST routes, procedures, validation, error handling |
+| `backend-database` | 14 | Drizzle ORM: schemas, relations, queries, migrations, types, indexes |
+| `backend-auth` | 9 | Better Auth: sessions, page/API protection, sign-up/in, OTP, password reset |
+| `backend-email` | 3 | React Email + Resend: templates, sending, shared components |
+| `backend-middleware` | 2 | oRPC middleware: auth, roles, custom middleware creation |
+| `frontend-pages` | 12 | Next.js pages: create, layout, header, sidebar, loading, error, URL state |
+| `frontend-components` | 8 | Components: create, split, client/server, naming, imports, props, forwardRef |
+| `frontend-ui` | 22 | AlignUI: buttons, inputs, modals, tables, badges, icons, design tokens, etc. |
+| `frontend-forms` | 8 | React Hook Form: create, validate, submit, errors, reset, file upload |
+| `frontend-state` | 6 | State: TanStack Query, mutations, invalidation, URL state, Context |
+| `validation-skills` | 5 | Zod: create validators, organize, Drizzle-Zod, refinements, shared schemas |
+| `architecture-skills` | 9 | Architecture: feature-first, naming, folders, code splitting, imports |
+| `workflow-skills` | 9 | **KEY**: add-feature, fix-bug, checks, consistency, pre-commit, code review |
+| `integrations-skills` | 5 | Optional: Vercel Blob, AI SDK, Tiptap, PostHog, Redis |
+
+### How skills work
+
+Skills are loaded **automatically** when Claude detects a matching task. No manual reading needed.
+
+For manual reference:
+```bash
+ls .claude/skills/workflow-skills/        # List reference files in a skill
+cat .claude/skills/workflow-skills/add-feature.md  # Read a specific guide
 ```
-Lis le fichier .claude/skills/vercel-blob.md
-```
+
+### Key workflow (read first for any new task)
+
+- **`workflow-skills/add-feature.md`** → Complete end-to-end feature implementation
+- **`workflow-skills/fix-bug.md`** → Bug investigation and fix workflow
+- **`workflow-skills/consistency-guide.md`** → How to keep UI/code consistent
+- **`workflow-skills/pre-commit-checklist.md`** → What to verify before committing
 
 ## Important
 
 1. **NE JAMAIS modifier `/components/ui/`** - C'est le design system AlignUI
 2. **TOUJOURS vérifier avec `pnpm build`** avant de considérer une tâche terminée
-3. **Utiliser les composants existants** avant d'en créer de nouveaux
-4. **Feature-first** - Garder le code organisé par fonctionnalité
+3. **TOUJOURS consulter les skills pertinents** avant d'implémenter
+4. **Utiliser les composants existants** avant d'en créer de nouveaux
+5. **Feature-first** - Garder le code organisé par fonctionnalité
+6. **Consistency** - Copier les patterns des pages existantes (header, layout, sidebar)
+7. **No questions** - Les skills contiennent toutes les réponses, pas besoin de demander à l'utilisateur
