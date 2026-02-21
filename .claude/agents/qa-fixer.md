@@ -1,7 +1,7 @@
 ---
 name: qa-fixer
 description: QA specialist that fixes build errors, TypeScript issues, and lint violations
-model: sonnet
+model: opus
 ---
 
 # QA Fixer Agent

@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: Code review specialist ensuring TypeScript strict mode, AlignUI usage, feature-first architecture, and successful builds
-model: sonnet
+model: opus
 ---
 
 # Code Reviewer Agent
