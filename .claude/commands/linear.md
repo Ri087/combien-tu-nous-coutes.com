@@ -1,123 +1,180 @@
-# Linear Mode — From Linear issues to implementation
+# Linear Mode — Fetch issues, implement, PR
 
-Tu vas synchroniser les issues Linear avec le projet et preparer le developpement autonome.
+Tu vas fetcher les issues Linear, demander a l'utilisateur lesquelles implementer, puis les implementer avec des sub-agents. Chaque commit reference l'issue Linear qu'il resout.
+
+**Pas de fichier intermediaire.** Tu travailles directement depuis Linear.
 
 ## Pre-requis
 
-- MCP Linear configure (voir `.cursor/mcp.json` ou `claude mcp add linear`)
+- MCP Linear configure
 - Projet Linear existant avec des issues
 
 ## Process
 
-### Phase 1 — Connexion Linear
+### Phase 1 — Fetch & Selection
 
-1. **Liste les projets** disponibles via MCP Linear
-2. **Demande** a l'utilisateur quel projet utiliser (ou utilise l'argument: `$ARGUMENTS`)
-3. **Recupere les issues** du projet (status != Done)
+1. **Fetch les issues** via MCP Linear (project: `$ARGUMENTS` ou demande)
+   - Filtre: status != Done, status != Cancelled
+   - Trie par priorite (Urgent > High > Medium > Low > None)
 
-### Phase 2 — Analyse des issues
+2. **Affiche les issues** a l'utilisateur avec un resume clair:
+   ```
+   Issues a implementer:
 
-Pour chaque issue Linear:
-1. Lis le titre, la description, les labels, la priorite
-2. Identifie si c'est un feature, bugfix, ou improvement
-3. Mappe vers un template Impulse si pertinent
+   [1] LIN-42  (Urgent)  Systeme d'auth email/password
+   [2] LIN-43  (High)    Dashboard principal
+   [3] LIN-44  (High)    CRUD Projets
+   [4] LIN-45  (Medium)  Page Settings
+   [5] LIN-46  (Low)     Export CSV
+   ```
 
-### Phase 3 — Generer FEATURES.md depuis Linear
+3. **Demande a l'utilisateur** lesquelles implementer:
+   - "Toutes" → tout
+   - "1,2,3" → selection
+   - "Urgent+High" → par priorite
 
-Cree `FEATURES.md` en mappant chaque issue Linear:
+### Phase 2 — Preparation
 
-```markdown
-# Features — {nom-du-projet}
+1. **Lis `CLAUDE.md`** pour les conventions du repo
+2. **Lis `.claude/resources/impulse-repos.md`** pour les templates Impulse
+3. **Cree une branche** si pas deja dessus: `feat/linear-batch-{date}`
+4. **Pour chaque issue selectionnee**, analyse:
+   - Type: feature / bugfix / improvement
+   - Besoins backend: schema DB ? router ? validators ?
+   - Besoins frontend: pages ? composants ?
+   - Template Impulse pertinent
 
-## Source: Linear Project {project-name}
+### Phase 3 — Implementation (par issue)
 
-## Core Features
+Pour CHAQUE issue selectionnee, dans l'ordre de priorite:
 
-### F001: {titre de l'issue Linear}
-**Linear ID:** {LIN-XXX}
-**Priority:** {priority}
-**Labels:** {labels}
+#### 3.1 — Delegue aux agents
 
-**Description:** {description de l'issue}
+1. **Mets l'issue "In Progress"** sur Linear via MCP
+2. **Cree les taches** avec TaskCreate:
+   - `[Backend] LIN-XX: {titre}` (si backend necessaire)
+   - `[Frontend] LIN-XX: {titre}`
+   - `[Review] LIN-XX: {titre}`
 
-**Acceptance Criteria:**
-- [ ] {criteres depuis la description Linear}
-- [ ] {criteres supplementaires deduits}
+3. **Spawn les agents** via SendMessage:
 
-**Backend:**
-- {estimation des besoins backend}
+   → **backend-dev** (si applicable):
+   ```
+   Implemente le backend pour l'issue Linear "{titre}":
+   Description: {description de l'issue}
 
-**Frontend:**
-- {estimation des besoins frontend}
+   A faire:
+   - Schema DB si necessaire
+   - Validators Zod
+   - Router oRPC (.route({ method: 'GET' }) pour lectures)
+   - Enregistrer dans _app.ts
+   - pnpm db:push && pnpm build
+   ```
 
-**Status:** TODO
-```
+   → **frontend-dev**:
+   ```
+   Implemente le frontend pour l'issue Linear "{titre}":
+   Description: {description de l'issue}
 
-### Phase 4 — Initialiser la memoire
+   Consulte les templates Impulse: {template pertinent}
+   Utilise UNIQUEMENT les composants AlignUI.
+   ```
 
-Cree `claude-progress.md` avec les references Linear:
+   → **code-reviewer**:
+   ```
+   Review l'implementation de LIN-XX: "{titre}"
+   Verifie: TypeScript strict, AlignUI, build, patterns.
+   Donne des instructions de correction precises si problemes.
+   ```
 
-```markdown
-# Claude Progress
+#### 3.2 — Self-healing
 
-> Memoire partagee — Mode Linear
+Si le code-reviewer rapporte CHANGES_REQUESTED:
+1. Envoie **qa-fixer** avec les instructions de correction
+2. Re-review par code-reviewer
+3. Repete max 3 fois
 
-## Source
-Linear Project: {project-name}
-Issues a traiter: {N}
+#### 3.3 — Commit & Update Linear
 
-## Last Updated
-{date} — Initialization
+Quand l'issue est validee (APPROVED par code-reviewer):
 
-## Completed Issues
-None yet
+1. **Commit** tous les fichiers de cette issue:
+   ```
+   git add <fichiers>
+   git commit -m "feat(LIN-XX): {titre de l'issue}
 
-## Current Issue
-None — ready to start
+   {resume de ce qui a ete implemente}
 
-## Remaining Issues
-{liste des issues avec Linear IDs}
+   Resolves: LIN-XX"
+   ```
 
-## Linear Status Mapping
-- TODO → "Todo" on Linear
-- IN_PROGRESS → "In Progress" on Linear
-- DONE → "Done" on Linear (updated via MCP)
+2. **Mets l'issue "Done"** sur Linear via MCP
 
-## Decisions & Notes
-None yet
+3. **Ajoute un commentaire** sur l'issue Linear:
+   ```
+   Implemented by Claude Code:
+   - Backend: {resume}
+   - Frontend: {resume}
+   - Commit: {hash}
+   ```
 
-## Known Issues
-None
-```
+4. **Passe a l'issue suivante**
 
-### Phase 5 — Instructions de lancement
+### Phase 4 — Finalisation
 
-```
-FEATURES.md cree avec {N} issues Linear.
-claude-progress.md initialise.
+Quand toutes les issues selectionnees sont implementees:
 
-Pour lancer le developpement autonome:
+1. **Build final**: `pnpm build`
+2. **Checks final**: `pnpm checks`
+3. **Resume** pour l'utilisateur:
+   ```
+   Implementation terminee:
 
-  Mode Linear (recommande):
-  pnpm ralph --linear
+   [DONE] LIN-42  Systeme d'auth         → 3 commits
+   [DONE] LIN-43  Dashboard              → 2 commits
+   [DONE] LIN-44  CRUD Projets           → 4 commits
+   [DONE] LIN-45  Page Settings          → 1 commit
+   [SKIP] LIN-46  Export CSV             → non selectionne
 
-  Mode Linear avec max iterations:
-  pnpm ralph --linear --max 30
+   Total: 10 commits, 4 issues resolues
+   Build: PASS
+   Branche: feat/linear-batch-20260221
+   ```
 
-Le Ralph Loop va:
-1. Lire les issues depuis Linear
-2. Implementer chaque issue
-3. Mettre a jour le statut sur Linear (Done)
-4. Ajouter un commentaire avec le resume
-5. Commiter avec la reference Linear
-```
+3. **Propose de creer une PR** avec tous les commits:
+   ```
+   PR Title: feat: implement LIN-42, LIN-43, LIN-44, LIN-45
+   PR Body:
+   ## Issues resolues
+   - [x] LIN-42: Systeme d'auth email/password
+   - [x] LIN-43: Dashboard principal
+   - [x] LIN-44: CRUD Projets
+   - [x] LIN-45: Page Settings
+
+   ## Resume des changements
+   {resume global}
+   ```
+
+4. Si en ralph-loop: ecris `EXIT_SIGNAL: true` dans RALPH_STATUS.md
+
+## File Ownership (STRICT)
+
+| Agent | Fichiers autorises |
+|---|---|
+| **backend-dev** | `/db/`, `/server/`, `/validators/`, `/orpc/` |
+| **frontend-dev** | `/app/(application)/`, `_components/`, `_hooks/`, `_actions/` |
+| **code-reviewer** | Aucun (lecture seule) |
+| **qa-fixer** | Tous sauf `/components/ui/` |
+| **coordinator** (toi) | `RALPH_STATUS.md`, `claude-progress.md` |
 
 ## Regles
 
-- **Respecter les priorites** Linear (P0 > P1 > P2)
-- **Mapper les labels** aux templates Impulse
-- **Conserver les IDs Linear** dans les commits et FEATURES.md
-- **Mettre a jour Linear** apres chaque issue implementee
-- **Ne pas creer d'issues** — seulement lire et mettre a jour
+- **Pas de fichier intermediaire** — travaille directement depuis Linear
+- **1 commit = 1 issue** (ou plus si complexe, mais toujours reference Linear)
+- **Toujours mettre a jour Linear** (status + commentaire)
+- **Respecter les priorites** Linear
+- **Self-healing** — reviewer → qa-fixer → re-review
+- **Build obligatoire** — chaque issue doit passer pnpm build
+- **Ne t'arrete pas** tant que toutes les issues selectionnees ne sont pas done
 
-Commence par lister les projets Linear !
+Commence par fetcher les issues Linear !
