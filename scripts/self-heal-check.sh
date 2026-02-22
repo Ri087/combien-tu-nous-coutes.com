@@ -57,4 +57,5 @@ if [ "$RALPH_MODE" = true ]; then
 fi
 
 # All checks passed
+printf '{"decision": "approve"}\n'
 exit 0

@@ -105,7 +105,7 @@ print_progress_bar() {
 check_build_between_iterations() {
     echo -e "${DIM}  Running build check...${NC}"
     local build_output
-    build_output=$(cd "$PROJECT_DIR" && pnpm build 2>&1) || true
+    build_output=$(cd "$PROJECT_DIR" && pnpm build 2>&1)
     local build_exit=$?
 
     if [ $build_exit -ne 0 ]; then
@@ -450,8 +450,11 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
     # --- Self-healing: build check between iterations ---
     echo ""
     echo -e "${CYAN}${BOLD}  Self-Heal Check${NC}"
-    check_build_between_iterations
-    BUILD_OK=$?
+    if check_build_between_iterations; then
+        BUILD_OK=0
+    else
+        BUILD_OK=1
+    fi
 
     # --- Check exit signal ---
     if grep -q "EXIT_SIGNAL: true" "$STATUS_FILE" 2>/dev/null; then
@@ -489,7 +492,13 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
     fi
 
     # --- Circuit breaker: detect no-change loops ---
-    CURRENT_HASH=$(cd "$PROJECT_DIR" && find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.md" \) -not -path "*/node_modules/*" -not -path "*/.next/*" -not -path "*/.ralph/*" 2>/dev/null | sort | xargs md5sum 2>/dev/null | md5sum)
+    # Use md5sum on Linux, md5 -r on macOS
+    if command -v md5sum &>/dev/null; then
+        HASH_CMD="md5sum"
+    else
+        HASH_CMD="md5 -r"
+    fi
+    CURRENT_HASH=$(cd "$PROJECT_DIR" && find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.md" \) -not -path "*/node_modules/*" -not -path "*/.next/*" -not -path "*/.ralph/*" 2>/dev/null | sort | xargs $HASH_CMD 2>/dev/null | $HASH_CMD)
 
     if [ "$CURRENT_HASH" = "$LAST_FILE_HASH" ]; then
         NO_CHANGE_COUNT=$((NO_CHANGE_COUNT + 1))
