@@ -238,7 +238,7 @@ const results = await db
 const result = await db.query.project.findFirst({
   where: and(
     eq(project.id, projectId),
-    eq(project.userId, ctx.user.id),
+    eq(project.userId, context.session.user.id),
   ),
 });
 
@@ -273,7 +273,7 @@ const results = await db.query.project.findMany({
 
 - ALWAYS prefer the relational query API (`db.query.table.findMany()`) for simple reads with relations.
 - ALWAYS use the SQL-like builder (`db.select().from()`) for joins, aggregations, and complex queries.
-- ALWAYS add ownership checks (`eq(table.userId, ctx.user.id)`) in protected procedures.
+- ALWAYS add ownership checks (`eq(table.userId, context.session.user.id)`) in protected procedures.
 - ALWAYS use `findFirst()` (not `findMany()[0]`) when fetching a single record.
 - ALWAYS import operators (`eq`, `and`, etc.) from `drizzle-orm`, not from `drizzle-orm/pg-core`.
 - ALWAYS handle the `undefined` case when using `findFirst()`.

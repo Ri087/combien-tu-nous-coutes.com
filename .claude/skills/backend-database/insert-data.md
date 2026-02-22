@@ -25,7 +25,7 @@ const newProject = await db
   .insert(project)
   .values({
     name: "My Project",
-    userId: ctx.user.id,
+    userId: context.session.user.id,
   })
   .returning();
 ```
@@ -37,7 +37,7 @@ const [newProject] = await db
   .insert(project)
   .values({
     name: "My Project",
-    userId: ctx.user.id,
+    userId: context.session.user.id,
   })
   .returning();
 ```
@@ -49,7 +49,7 @@ const [result] = await db
   .insert(project)
   .values({
     name: "My Project",
-    userId: ctx.user.id,
+    userId: context.session.user.id,
   })
   .returning({
     id: project.id,
@@ -65,9 +65,9 @@ Insert multiple records at once by passing an array to `.values()`:
 const newProjects = await db
   .insert(project)
   .values([
-    { name: "Project A", userId: ctx.user.id },
-    { name: "Project B", userId: ctx.user.id },
-    { name: "Project C", userId: ctx.user.id },
+    { name: "Project A", userId: context.session.user.id },
+    { name: "Project B", userId: context.session.user.id },
+    { name: "Project C", userId: context.session.user.id },
   ])
   .returning();
 ```
@@ -86,7 +86,7 @@ const [newProject] = await db
     name: input.name,
     description: input.description ?? null,
     isArchived: false,
-    userId: ctx.user.id,
+    userId: context.session.user.id,
     // createdAt and updatedAt use defaultNow() -- no need to set
   })
   .returning();
@@ -101,7 +101,7 @@ const [result] = await db
   .insert(project)
   .values({
     name: "My Project",
-    userId: ctx.user.id,
+    userId: context.session.user.id,
   })
   .onConflictDoUpdate({
     target: project.id,
@@ -122,7 +122,7 @@ await db
   .insert(project)
   .values({
     name: "My Project",
-    userId: ctx.user.id,
+    userId: context.session.user.id,
   })
   .onConflictDoNothing({
     target: project.id,
@@ -155,13 +155,13 @@ import { createProjectSchema } from "@/validators/project";
 export const projectsRouter = {
   create: protectedProcedure
     .input(createProjectSchema)
-    .handler(async ({ ctx, input }) => {
+    .handler(async ({ context, input }) => {
       const [newProject] = await db
         .insert(project)
         .values({
           name: input.name,
           description: input.description,
-          userId: ctx.user.id,
+          userId: context.session.user.id,
         })
         .returning();
 
@@ -182,13 +182,13 @@ const result = await db.transaction(async (tx) => {
     .insert(project)
     .values({
       name: input.name,
-      userId: ctx.user.id,
+      userId: context.session.user.id,
     })
     .returning();
 
   await tx.insert(projectMember).values({
     projectId: newProject.id,
-    userId: ctx.user.id,
+    userId: context.session.user.id,
     role: "owner",
   });
 
@@ -201,7 +201,7 @@ const result = await db.transaction(async (tx) => {
 ```typescript
 const records = externalData.map((item) => ({
   name: item.name,
-  userId: ctx.user.id,
+  userId: context.session.user.id,
 }));
 
 const inserted = await db.insert(project).values(records).returning();
@@ -211,7 +211,7 @@ const inserted = await db.insert(project).values(records).returning();
 
 - ALWAYS use `.returning()` to get the inserted record(s) back.
 - ALWAYS destructure with `const [record] = await db.insert(...)` for single inserts.
-- ALWAYS set `userId` from `ctx.user.id` in protected procedures -- never trust client input for user identity.
+- ALWAYS set `userId` from `context.session.user.id` in protected procedures -- never trust client input for user identity.
 - ALWAYS use `db.transaction()` when inserting into multiple tables that must succeed or fail together.
 - NEVER set `createdAt` or `updatedAt` manually unless overriding the default -- `.defaultNow()` handles it.
 - NEVER pass user-provided IDs unless explicitly required -- use `.defaultRandom()` or `.$defaultFn()`.

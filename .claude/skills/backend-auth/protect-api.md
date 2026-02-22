@@ -84,7 +84,7 @@ import { publicProcedure } from "./public.procedure";
 export const protectedProcedure = publicProcedure.use(authMiddleware);
 ```
 
-Any procedure built from `protectedProcedure` automatically requires authentication and has access to `ctx.session`.
+Any procedure built from `protectedProcedure` automatically requires authentication and has access to `context.session`.
 
 ## Creating a Protected Procedure
 
@@ -105,10 +105,10 @@ export const projectsRouter = {
   list: protectedProcedure
     .route({ method: "GET" })
     .input(z.object({ limit: z.number().optional() }))
-    .handler(async ({ ctx, input }) => {
-      // ctx.session is typed and guaranteed non-null
+    .handler(async ({ context, input }) => {
+      // context.session is typed and guaranteed non-null
       return db.query.projects.findMany({
-        where: eq(projects.userId, ctx.session.user.id),
+        where: eq(projects.userId, context.session.user.id),
         limit: input.limit ?? 10,
       });
     }),
@@ -117,12 +117,12 @@ export const projectsRouter = {
   getById: protectedProcedure
     .route({ method: "GET" })
     .input(z.object({ id: z.string().uuid() }))
-    .handler(async ({ ctx, input }) => {
+    .handler(async ({ context, input }) => {
       const project = await db.query.projects.findFirst({
         where: eq(projects.id, input.id),
       });
 
-      if (!project || project.userId !== ctx.session.user.id) {
+      if (!project || project.userId !== context.session.user.id) {
         throw new ORPCError("NOT_FOUND");
       }
 
@@ -132,12 +132,12 @@ export const projectsRouter = {
   // WRITE procedure: NO .route() -- defaults to POST
   create: protectedProcedure
     .input(z.object({ name: z.string().min(1) }))
-    .handler(async ({ ctx, input }) => {
+    .handler(async ({ context, input }) => {
       const [project] = await db
         .insert(projects)
         .values({
           name: input.name,
-          userId: ctx.session.user.id,
+          userId: context.session.user.id,
         })
         .returning();
       return project;
@@ -149,7 +149,7 @@ export const projectsRouter = {
       id: z.string().uuid(),
       name: z.string().min(1),
     }))
-    .handler(async ({ ctx, input }) => {
+    .handler(async ({ context, input }) => {
       const [updated] = await db
         .update(projects)
         .set({ name: input.name })
@@ -161,7 +161,7 @@ export const projectsRouter = {
   // WRITE procedure: delete
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
-    .handler(async ({ ctx, input }) => {
+    .handler(async ({ context, input }) => {
       await db.delete(projects).where(eq(projects.id, input.id));
       return { success: true };
     }),
@@ -183,20 +183,20 @@ export const appRouter = base.router({
 
 ## Accessing Session in Handlers
 
-Inside any `protectedProcedure` handler, the `ctx` parameter includes the full session:
+Inside any `protectedProcedure` handler, the `context` parameter includes the full session:
 
 ```typescript
-.handler(async ({ ctx, input }) => {
+.handler(async ({ context, input }) => {
   // User info
-  const userId = ctx.session.user.id;          // string
-  const userName = ctx.session.user.name;       // string
-  const userEmail = ctx.session.user.email;     // string
-  const isVerified = ctx.session.user.emailVerified; // boolean
+  const userId = context.session.user.id;          // string
+  const userName = context.session.user.name;       // string
+  const userEmail = context.session.user.email;     // string
+  const isVerified = context.session.user.emailVerified; // boolean
 
   // Session info
-  const sessionId = ctx.session.session.id;
-  const sessionToken = ctx.session.session.token;
-  const expiresAt = ctx.session.session.expiresAt;
+  const sessionId = context.session.session.id;
+  const sessionToken = context.session.session.token;
+  const expiresAt = context.session.session.expiresAt;
 })
 ```
 
@@ -218,7 +218,7 @@ export const publicRouter = {
 };
 ```
 
-**Note**: In public procedures, `ctx.session` does NOT exist. If you need optional auth (check if user is logged in but don't require it), create a custom middleware.
+**Note**: In public procedures, `context.session` does NOT exist. If you need optional auth (check if user is logged in but don't require it), create a custom middleware.
 
 ## Custom Middleware for Optional Auth
 
@@ -241,10 +241,10 @@ const optionalAuthProcedure = publicProcedure.use(optionalAuthMiddleware);
 export const someRouter = {
   getData: optionalAuthProcedure
     .route({ method: "GET" })
-    .handler(async ({ ctx }) => {
-      if (ctx.session) {
+    .handler(async ({ context }) => {
+      if (context.session) {
         // User is authenticated
-        return { personalized: true, userId: ctx.session.user.id };
+        return { personalized: true, userId: context.session.user.id };
       }
       // User is anonymous
       return { personalized: false };
@@ -259,7 +259,7 @@ The auth middleware throws `ORPCError("UNAUTHORIZED")` which maps to HTTP 401. Y
 ```typescript
 import { ORPCError } from "@orpc/server";
 
-.handler(async ({ ctx, input }) => {
+.handler(async ({ context, input }) => {
   const item = await db.query.items.findFirst({
     where: eq(items.id, input.id),
   });
@@ -268,7 +268,7 @@ import { ORPCError } from "@orpc/server";
     throw new ORPCError("NOT_FOUND");           // 404
   }
 
-  if (item.userId !== ctx.session.user.id) {
+  if (item.userId !== context.session.user.id) {
     throw new ORPCError("FORBIDDEN");            // 403
   }
 
@@ -289,9 +289,9 @@ Common ORPCError codes:
 - ALWAYS use `.route({ method: "GET" })` for read procedures (list, get, find, search)
 - NEVER add `.route()` for write procedures (create, update, delete) -- POST is the default
 - ALWAYS use `.handler()` -- never `.query()` or `.mutation()` (they don't exist in oRPC)
-- ALWAYS scope database queries by `ctx.session.user.id` to prevent unauthorized data access
+- ALWAYS scope database queries by `context.session.user.id` to prevent unauthorized data access
 - ALWAYS register new routers in `/server/routers/_app.ts`
-- NEVER import `auth` directly in procedure files -- use `ctx.session` from the middleware
+- NEVER import `auth` directly in procedure files -- use `context.session` from the middleware
 - The server uses `StrictGetMethodPlugin`: a GET request to a procedure without `.route({ method: "GET" })` returns 405
 
 ## Related Skills

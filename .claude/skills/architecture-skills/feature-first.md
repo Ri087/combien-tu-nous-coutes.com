@@ -122,13 +122,13 @@ import { createProjectSchema } from "@/validators/projects";
 export const projectsRouter = {
   list: protectedProcedure
     .route({ method: "GET" })
-    .handler(async ({ ctx }) => {
+    .handler(async ({ context }) => {
       // ...
     }),
 
   create: protectedProcedure
     .input(createProjectSchema)
-    .handler(async ({ ctx, input }) => {
+    .handler(async ({ context, input }) => {
       // ...
     }),
 };

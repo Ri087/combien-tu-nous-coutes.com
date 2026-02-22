@@ -18,7 +18,7 @@ This skill covers the complete oRPC workflow in this project: creating routers w
 - **http-methods.md** -- Complete reference for HTTP method selection and the `.route()` API
 - **input-validation.md** -- How to validate procedure input using Zod schemas
 - **error-handling.md** -- How to throw and handle errors within oRPC procedures
-- **route-context.md** -- How to access the route context (`ctx`) including user session data
+- **route-context.md** -- How to access the route context (`context`) including user session data
 - **protected-procedures.md** -- How to use `protectedProcedure` for authenticated-only routes
 - **public-procedures.md** -- How to use `publicProcedure` for unauthenticated routes
 - **database-in-routes.md** -- How to use Drizzle ORM queries inside oRPC handlers

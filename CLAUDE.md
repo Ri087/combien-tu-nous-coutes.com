@@ -124,9 +124,9 @@ export const projectsRouter = {
   list: protectedProcedure
     .route({ method: 'GET' })
     .input(z.object({ limit: z.number().optional() }))
-    .handler(async ({ ctx, input }) => {
+    .handler(async ({ context, input }) => {
       return db.query.projects.findMany({
-        where: eq(projects.userId, ctx.user.id),
+        where: eq(projects.userId, context.session.user.id),
         limit: input.limit ?? 10,
       });
     }),
@@ -134,10 +134,10 @@ export const projectsRouter = {
   // ✅ Écriture → PAS de .route() (POST par défaut)
   create: protectedProcedure
     .input(z.object({ name: z.string().min(1) }))
-    .handler(async ({ ctx, input }) => {
+    .handler(async ({ context, input }) => {
       return db.insert(projects).values({
         name: input.name,
-        userId: ctx.user.id,
+        userId: context.session.user.id,
       }).returning();
     }),
 };

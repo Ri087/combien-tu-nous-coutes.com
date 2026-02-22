@@ -70,7 +70,7 @@ const results = await db
   .from(project)
   .innerJoin(projectMember, eq(project.id, projectMember.projectId))
   .innerJoin(user, eq(projectMember.userId, user.id))
-  .where(eq(project.userId, ctx.user.id));
+  .where(eq(project.userId, context.session.user.id));
 ```
 
 ### Join with Conditions
@@ -98,7 +98,7 @@ const results = await db
 const [result] = await db
   .select({ count: count() })
   .from(project)
-  .where(eq(project.userId, ctx.user.id));
+  .where(eq(project.userId, context.session.user.id));
 
 const totalProjects = result.count; // number
 ```
@@ -112,7 +112,7 @@ const [result] = await db
     active: count(sql`CASE WHEN ${project.isArchived} = false THEN 1 END`),
   })
   .from(project)
-  .where(eq(project.userId, ctx.user.id));
+  .where(eq(project.userId, context.session.user.id));
 ```
 
 ### Sum
@@ -121,7 +121,7 @@ const [result] = await db
 const [result] = await db
   .select({ totalAmount: sum(invoice.amount) })
   .from(invoice)
-  .where(eq(invoice.userId, ctx.user.id));
+  .where(eq(invoice.userId, context.session.user.id));
 ```
 
 ### Average
@@ -142,7 +142,7 @@ const [result] = await db
     latest: max(project.createdAt),
   })
   .from(project)
-  .where(eq(project.userId, ctx.user.id));
+  .where(eq(project.userId, context.session.user.id));
 ```
 
 ## Group By
@@ -227,7 +227,7 @@ const pageNumber = 2; // 0-indexed
 const results = await db
   .select()
   .from(project)
-  .where(eq(project.userId, ctx.user.id))
+  .where(eq(project.userId, context.session.user.id))
   .orderBy(desc(project.createdAt))
   .limit(pageSize)
   .offset(pageNumber * pageSize);
@@ -243,14 +243,14 @@ const [items, [{ total }]] = await Promise.all([
   db
     .select()
     .from(project)
-    .where(eq(project.userId, ctx.user.id))
+    .where(eq(project.userId, context.session.user.id))
     .orderBy(desc(project.createdAt))
     .limit(pageSize)
     .offset(page * pageSize),
   db
     .select({ total: count() })
     .from(project)
-    .where(eq(project.userId, ctx.user.id)),
+    .where(eq(project.userId, context.session.user.id)),
 ]);
 
 return {
@@ -362,19 +362,19 @@ For complex operations that must succeed or fail atomically:
 const result = await db.transaction(async (tx) => {
   const [newProject] = await tx
     .insert(project)
-    .values({ name: "New Project", userId: ctx.user.id })
+    .values({ name: "New Project", userId: context.session.user.id })
     .returning();
 
   await tx.insert(projectMember).values({
     projectId: newProject.id,
-    userId: ctx.user.id,
+    userId: context.session.user.id,
     role: "owner",
   });
 
   const [projectCount] = await tx
     .select({ count: count() })
     .from(project)
-    .where(eq(project.userId, ctx.user.id));
+    .where(eq(project.userId, context.session.user.id));
 
   return { project: newProject, totalProjects: projectCount.count };
 });

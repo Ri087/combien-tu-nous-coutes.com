@@ -39,7 +39,7 @@ const [deleted] = await db
   .where(
     and(
       eq(project.id, projectId),
-      eq(project.userId, ctx.user.id),
+      eq(project.userId, context.session.user.id),
     ),
   )
   .returning();
@@ -80,7 +80,7 @@ const deletedProjects = await db
   .where(
     and(
       inArray(project.id, projectIds),
-      eq(project.userId, ctx.user.id),
+      eq(project.userId, context.session.user.id),
     ),
   )
   .returning();
@@ -129,7 +129,7 @@ const [softDeleted] = await db
   .where(
     and(
       eq(project.id, projectId),
-      eq(project.userId, ctx.user.id),
+      eq(project.userId, context.session.user.id),
     ),
   )
   .returning();
@@ -140,7 +140,7 @@ const [softDeleted] = await db
 ```typescript
 const activeProjects = await db.query.project.findMany({
   where: and(
-    eq(project.userId, ctx.user.id),
+    eq(project.userId, context.session.user.id),
     isNull(project.deletedAt),
   ),
 });
@@ -172,13 +172,13 @@ import { z } from "zod";
 export const projectsRouter = {
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
-    .handler(async ({ ctx, input }) => {
+    .handler(async ({ context, input }) => {
       const [deleted] = await db
         .delete(project)
         .where(
           and(
             eq(project.id, input.id),
-            eq(project.userId, ctx.user.id),
+            eq(project.userId, context.session.user.id),
           ),
         )
         .returning();
@@ -209,7 +209,7 @@ const result = await db.transaction(async (tx) => {
     .where(
       and(
         eq(project.id, projectId),
-        eq(project.userId, ctx.user.id),
+        eq(project.userId, context.session.user.id),
       ),
     )
     .returning();
@@ -234,7 +234,7 @@ Deleting the user automatically deletes all related records. No need for a trans
 
 ## Rules
 
-- ALWAYS include an ownership check (`eq(table.userId, ctx.user.id)`) in protected procedures.
+- ALWAYS include an ownership check (`eq(table.userId, context.session.user.id)`) in protected procedures.
 - ALWAYS use `.returning()` to confirm which records were deleted.
 - ALWAYS check if the returned value is `undefined` to handle the "not found" case.
 - ALWAYS use `onDelete: "cascade"` on foreign keys to the user table so user deletion cleans up related data.

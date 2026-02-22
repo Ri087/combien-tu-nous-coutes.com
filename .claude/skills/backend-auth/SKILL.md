@@ -23,7 +23,7 @@ This skill covers the complete authentication system built with Better Auth. It 
 ## Key Rules
 
 1. **Always use `getServerSession()` for server-side session checks.** Never manually parse cookies or tokens.
-2. **Always use `protectedProcedure` for authenticated oRPC routes.** This automatically injects the user into `ctx`.
+2. **Always use `protectedProcedure` for authenticated oRPC routes.** This automatically injects the user into `context`.
 3. **Never store sensitive auth data in client-side state.** Use the `authClient` session hook instead.
 4. **Always redirect unauthenticated users** to the sign-in page using the auth middleware or page-level checks.
 5. **Use `AUTH_PAGES` constants** for auth-related page paths (sign-in, sign-up, etc.).

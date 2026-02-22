@@ -48,7 +48,7 @@ const [updated] = await db
   .where(
     and(
       eq(project.id, input.id),
-      eq(project.userId, ctx.user.id),
+      eq(project.userId, context.session.user.id),
     ),
   )
   .returning();
@@ -99,7 +99,7 @@ const [updated] = await db
   .where(
     and(
       eq(project.id, projectId),
-      eq(project.userId, ctx.user.id),
+      eq(project.userId, context.session.user.id),
       eq(project.status, "draft"), // Only update if currently draft
     ),
   )
@@ -157,7 +157,7 @@ const [updated] = await db
   .where(
     and(
       eq(project.id, input.id),
-      eq(project.userId, ctx.user.id),
+      eq(project.userId, context.session.user.id),
     ),
   )
   .returning();
@@ -176,7 +176,7 @@ import { updateProjectSchema } from "@/validators/project";
 export const projectsRouter = {
   update: protectedProcedure
     .input(updateProjectSchema)
-    .handler(async ({ ctx, input }) => {
+    .handler(async ({ context, input }) => {
       const [updated] = await db
         .update(project)
         .set({
@@ -187,7 +187,7 @@ export const projectsRouter = {
         .where(
           and(
             eq(project.id, input.id),
-            eq(project.userId, ctx.user.id),
+            eq(project.userId, context.session.user.id),
           ),
         )
         .returning();
@@ -219,7 +219,7 @@ const result = await db.transaction(async (tx) => {
     .where(
       and(
         eq(projectMember.projectId, input.id),
-        eq(projectMember.userId, ctx.user.id),
+        eq(projectMember.userId, context.session.user.id),
       ),
     );
 
@@ -230,12 +230,12 @@ const result = await db.transaction(async (tx) => {
 ## Rules
 
 - ALWAYS include `updatedAt: new Date()` in the `.set()` call to track when the record was modified.
-- ALWAYS include an ownership check (`eq(table.userId, ctx.user.id)`) in protected procedures.
+- ALWAYS include an ownership check (`eq(table.userId, context.session.user.id)`) in protected procedures.
 - ALWAYS use `.returning()` to get the updated record back.
 - ALWAYS check if the returned value is `undefined` to handle the "not found" case.
 - ALWAYS use `db.transaction()` when updating multiple tables atomically.
 - NEVER update without a `.where()` clause -- this would update ALL rows.
-- NEVER trust client input for `userId` -- always use `ctx.user.id`.
+- NEVER trust client input for `userId` -- always use `context.session.user.id`.
 
 ## Related Skills
 

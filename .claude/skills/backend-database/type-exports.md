@@ -212,9 +212,9 @@ export const projectsRouter = {
   get: protectedProcedure
     .route({ method: "GET" })
     .input(z.object({ id: z.string().uuid() }))
-    .handler(async ({ ctx, input }): Promise<Project | undefined> => {
+    .handler(async ({ context, input }): Promise<Project | undefined> => {
       return db.query.project.findFirst({
-        where: and(eq(project.id, input.id), eq(project.userId, ctx.user.id)),
+        where: and(eq(project.id, input.id), eq(project.userId, context.session.user.id)),
       });
     }),
 };

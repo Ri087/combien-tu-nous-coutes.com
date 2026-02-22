@@ -84,7 +84,7 @@ const [newProject] = await db
   .insert(project)
   .values({
     name: "My Project",
-    userId: ctx.user.id,
+    userId: context.session.user.id,
     settings: {
       theme: "dark",
       notifications: { email: true, push: true },
