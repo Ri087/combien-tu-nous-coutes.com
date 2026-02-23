@@ -267,22 +267,25 @@ actions:
            }
 
            // server/routers/users/router.ts
-           import { router, protectedProcedure } from '@/server/trpc';
+           import { protectedProcedure } from '@/server/procedure/protected.procedure';
            import { getUser } from './queries/getUser';
            import { getUserInputSchema } from './validators';
 
-           export const usersRouter = router({
+           export const usersRouter = {
              getUser: protectedProcedure
+               .route({ method: 'GET' })
                .input(getUserInputSchema)
-               .query(async ({ ctx, input }) => {
-                 const { db } = ctx;
+               .handler(async ({ context, input }) => {
+                 const { db } = context;
                  // Pass db from context to the implementation function
                  return await getUser({ userId: input.userId, db });
                })
-           });
+           };
            ```
          - Consistent error handling:
            ```typescript
+           import { ORPCError } from '@orpc/server';
+
            export async function createUser({
              input,
              db
@@ -299,38 +302,36 @@ actions:
              } catch (error) {
                // Handle specific database errors
                if (error.code === '23505') { // Unique violation
-                 throw new TRPCError({
-                   code: 'CONFLICT',
+                 throw new ORPCError('CONFLICT', {
                    message: 'User with this email already exists'
                  });
                }
-               // Re-throw other errors for tRPC to handle
-               throw new TRPCError({
-                 code: 'INTERNAL_SERVER_ERROR',
+               // Re-throw other errors for oRPC to handle
+               throw new ORPCError('INTERNAL_SERVER_ERROR', {
                  message: 'Failed to create user'
                });
              }
            }
            ```
-         - Type safety between Drizzle and tRPC:
+         - Type safety between Drizzle and oRPC:
            ```typescript
-           // Leverage Drizzle's type system with tRPC
-           import { users } from '@/server/db/schema';
+           // Leverage Drizzle's type system with oRPC
+           import { users } from '@/db/schema';
            import { z } from 'zod';
            import { createInsertSchema } from 'drizzle-zod';
 
-           // Create Zod schema from Drizzle schema for tRPC input validation
+           // Create Zod schema from Drizzle schema for oRPC input validation
            export const userInputSchema = createInsertSchema(users).omit({
              id: true, // Remove auto-generated fields
              createdAt: true
            });
 
-           // Use in tRPC procedure
+           // Use in oRPC procedure
            export const createUser = protectedProcedure
              .input(userInputSchema)
-             .mutation(async ({ ctx, input }) => {
+             .handler(async ({ context, input }) => {
                // Input is fully typed from Drizzle schema
-               return await createUserImpl({ input, db: ctx.db });
+               return await createUserImpl({ input, db: context.db });
              });
            ```
 
@@ -497,18 +498,19 @@ examples:
     output: "Organize schema files with clear structure and exports"
 
   - input: |
-      // Bad: Disconnected Drizzle and tRPC logic
-      // tRPC procedure with direct database access
+      // Bad: Disconnected Drizzle and oRPC logic
+      // oRPC procedure with direct database access
       const getUserPosts = protectedProcedure
+        .route({ method: 'GET' })
         .input(z.object({ userId: z.string() }))
-        .query(async ({ ctx, input }) => {
-          const posts = await ctx.db.select()
+        .handler(async ({ context, input }) => {
+          const posts = await context.db.select()
             .from(posts)
             .where(eq(posts.userId, input.userId));
           return posts;
         });
 
-      // Good: Bridging Drizzle with tRPC using clean implementation functions
+      // Good: Bridging Drizzle with oRPC using clean implementation functions
       // server/routers/posts/queries/getUserPosts.ts
       export async function getUserPosts({
         userId,
@@ -532,14 +534,15 @@ examples:
       }
 
       // server/routers/posts/router.ts
-      export const postsRouter = router({
+      export const postsRouter = {
         getUserPosts: protectedProcedure
+          .route({ method: 'GET' })
           .input(z.object({ userId: z.string() }))
-          .query(async ({ ctx, input }) => {
-            return await getUserPosts({ userId: input.userId, db: ctx.db });
+          .handler(async ({ context, input }) => {
+            return await getUserPosts({ userId: input.userId, db: context.db });
           })
-      });
-    output: "Create a clean bridge between Drizzle and tRPC with implementation functions"
+      };
+    output: "Create a clean bridge between Drizzle and oRPC with implementation functions"
 
 metadata:
   priority: high

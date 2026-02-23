@@ -53,42 +53,41 @@ mcp__devin__read_wiki_contents(repoName: "impulse-studio/nextjs-boilerplate")
 ### Patterns de Schema
 
 ```typescript
-// db/schema/[feature].ts
+// db/schema/feature/schema.ts
 import { pgTable, text, timestamp, uuid, boolean } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { users } from './auth';
+import { user } from '../auth/schema';
 
-export const features = pgTable('features', {
+export const feature = pgTable('feature', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export const featuresRelations = relations(features, ({ one }) => ({
-  user: one(users, { fields: [features.userId], references: [users.id] }),
+export const featureRelations = relations(feature, ({ one }) => ({
+  user: one(user, { fields: [feature.userId], references: [user.id] }),
 }));
 ```
 
 ### Patterns oRPC
 
 ```typescript
-// orpc/[feature].ts
+// server/routers/[feature].ts
 import { protectedProcedure } from '@/server/procedure/protected.procedure';
 import { z } from 'zod';
-import { db } from '@/db';
-import { features } from '@/db/schema/features';
+import { feature } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
-export const featuresRouter = {
+export const featureRouter = {
   // Lecture → TOUJOURS .route({ method: 'GET' })
   list: protectedProcedure
     .route({ method: 'GET' })
     .input(z.object({ limit: z.number().optional() }))
-    .handler(async ({ ctx, input }) => {
-      return db.query.features.findMany({
-        where: eq(features.userId, ctx.user.id),
+    .handler(async ({ context, input }) => {
+      return context.db.query.feature.findMany({
+        where: eq(feature.userId, context.session.user.id),
         limit: input.limit ?? 10,
       });
     }),
@@ -96,10 +95,10 @@ export const featuresRouter = {
   // Écriture → PAS de .route() (POST par défaut)
   create: protectedProcedure
     .input(createFeatureSchema)
-    .handler(async ({ ctx, input }) => {
-      return db.insert(features).values({
+    .handler(async ({ context, input }) => {
+      return context.db.insert(feature).values({
         ...input,
-        userId: ctx.user.id,
+        userId: context.session.user.id,
       }).returning();
     }),
 };
@@ -110,12 +109,12 @@ export const featuresRouter = {
 Après avoir créé un router, l'enregistrer dans `/server/routers/_app.ts` :
 
 ```typescript
-import { featuresRouter } from '@/orpc/features';
+import { featureRouter } from './feature';
 
-export const appRouter = {
+export const appRouter = base.router({
   // ...existing routers
-  features: featuresRouter,
-};
+  feature: featureRouter,
+});
 ```
 
 ### Validators
@@ -138,7 +137,7 @@ Tu possèdes EXCLUSIVEMENT :
 - `/db/schema/` — Schemas Drizzle
 - `/server/` — Middleware, procedures, routers
 - `/validators/` — Schemas Zod partagés
-- `/orpc/` — Routers oRPC
+- `/orpc/` — Client oRPC et query utils
 
 Tu ne touches JAMAIS :
 - `/app/` — Frontend-dev
@@ -151,7 +150,7 @@ Tu ne touches JAMAIS :
 2. Exporte le schema dans `/db/schema/index.ts`
 3. Push le schema : `pnpm db:push`
 4. Crée les validators dans `/validators/[feature].ts`
-5. Crée le router oRPC dans `/orpc/[feature].ts`
+5. Crée le router oRPC dans `/server/routers/[feature].ts`
 6. Enregistre le router dans `/server/routers/_app.ts`
 7. Vérifie avec `pnpm build`
 
