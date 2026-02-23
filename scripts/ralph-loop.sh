@@ -79,8 +79,10 @@ count_features() {
         echo "?/?"
         return
     fi
-    local total=$(grep -c '\- \[.\]' "$file" 2>/dev/null || echo 0)
-    local done=$(grep -c '\- \[x\]' "$file" 2>/dev/null || echo 0)
+    local total
+    total=$(grep -c '\- \[.\]' "$file" 2>/dev/null) || total=0
+    local done
+    done=$(grep -c '\- \[x\]' "$file" 2>/dev/null) || done=0
     echo "$done/$total"
 }
 
@@ -88,8 +90,10 @@ print_progress_bar() {
     local file="$PROJECT_DIR/FEATURES.md"
     if [ ! -f "$file" ]; then return; fi
 
-    local total=$(grep -c '\- \[.\]' "$file" 2>/dev/null || echo 0)
-    local done=$(grep -c '\- \[x\]' "$file" 2>/dev/null || echo 0)
+    local total
+    total=$(grep -c '\- \[.\]' "$file" 2>/dev/null) || total=0
+    local done
+    done=$(grep -c '\- \[x\]' "$file" 2>/dev/null) || done=0
     if [ "$total" -eq 0 ]; then return; fi
 
     local pct=$((done * 100 / total))
@@ -358,8 +362,9 @@ cat > "$STATUS_FILE" << 'EOF'
 EOF
 
 # Update mode in status file
-sed -i "s/Mode: SPEC/Mode: ${MODE^^}/" "$STATUS_FILE" 2>/dev/null || \
-    sed -i '' "s/Mode: SPEC/Mode: ${MODE^^}/" "$STATUS_FILE" 2>/dev/null || true
+MODE_UPPER=$(echo "$MODE" | tr '[:lower:]' '[:upper:]')
+sed -i "s/Mode: SPEC/Mode: $MODE_UPPER/" "$STATUS_FILE" 2>/dev/null || \
+    sed -i '' "s/Mode: SPEC/Mode: $MODE_UPPER/" "$STATUS_FILE" 2>/dev/null || true
 
 # Initialize progress file if it doesn't exist
 if [ ! -f "$PROGRESS_FILE" ]; then

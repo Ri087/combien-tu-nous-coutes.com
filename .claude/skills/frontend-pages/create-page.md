@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Complete guide to creating a new page in the Next.js 15 App Router codebase. Covers file structure, metadata, server vs client components, route constants, and sidebar integration.
+Complete guide to creating a new page in the Next.js 16 App Router codebase. Covers file structure, metadata, server vs client components, route constants, and sidebar integration.
 
 ## Prerequisites
 

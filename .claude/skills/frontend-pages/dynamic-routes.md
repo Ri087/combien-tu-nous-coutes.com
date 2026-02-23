@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Guide to creating dynamic routes in Next.js 15 App Router. Covers `[id]` params, `[...slug]` catch-all routes, `[[...rest]]` optional catch-all routes, and `generateStaticParams`.
+Guide to creating dynamic routes in Next.js 16 App Router. Covers `[id]` params, `[...slug]` catch-all routes, `[[...rest]]` optional catch-all routes, and `generateStaticParams`.
 
 ## Dynamic Route Types
 
@@ -66,12 +66,12 @@ export default async function ProjectDetailPage({
 }
 ```
 
-### Important: `params` is a Promise in Next.js 15
+### Important: `params` is a Promise in Next.js 16
 
-In Next.js 15, `params` is a `Promise` and must be awaited:
+In Next.js 16, `params` is a `Promise` and must be awaited:
 
 ```tsx
-// CORRECT -- Next.js 15
+// CORRECT -- Next.js 16
 type PageProps = {
   params: Promise<{ id: string }>;
 };
@@ -86,7 +86,7 @@ type PageProps = {
 };
 
 export default function Page({ params }: PageProps) {
-  const { id } = params;  // No await -- breaks in Next.js 15
+  const { id } = params;  // No await -- breaks in Next.js 16
 }
 ```
 
@@ -379,8 +379,8 @@ export default async function DetailPage({
 
 ## Rules
 
-- In Next.js 15, `params` is always a `Promise` -- always `await` it
-- `searchParams` is also a `Promise` in Next.js 15
+- In Next.js 16, `params` is always a `Promise` -- always `await` it
+- `searchParams` is also a `Promise` in Next.js 16
 - Dynamic segments are always strings -- parse to numbers/UUIDs as needed
 - Use `notFound()` for invalid IDs rather than showing error states
 - Pass the ID as a prop to client components rather than using `useParams()` when possible

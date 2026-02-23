@@ -127,7 +127,7 @@ pnpm add -D eslint-plugin-[name]
 These are the core packages already installed in this project. Always check `package.json` for the complete and current list.
 
 ### Core Framework
-- `next` -- Next.js 15 (App Router)
+- `next` -- Next.js 16 (App Router)
 - `react`, `react-dom` -- React 19
 - `typescript` -- TypeScript
 

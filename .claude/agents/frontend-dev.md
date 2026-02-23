@@ -54,7 +54,7 @@ mcp__devin__read_wiki_contents(repoName: "impulse-studio/<repo>")
 
 ### Stack maîtrisée
 
-- **Next.js 15** App Router, Server Components, Server Actions
+- **Next.js 16** App Router, Server Components, Server Actions
 - **AlignUI** — 58+ composants dans `/components/ui/`
 - **React Hook Form** + **Zod** pour les formulaires
 - **oRPC client** pour les appels API type-safe

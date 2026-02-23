@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Guide to understanding and creating route groups in Next.js 15 App Router. Covers the existing `(auth)`, `(application)`, and `(marketing)` groups, when to create new ones, and shared layout patterns.
+Guide to understanding and creating route groups in Next.js 16 App Router. Covers the existing `(auth)`, `(application)`, and `(marketing)` groups, when to create new ones, and shared layout patterns.
 
 ## What Are Route Groups?
 

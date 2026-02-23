@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Guide to setting page metadata in Next.js 15 for SEO, social sharing, and browser tab titles. Covers static metadata exports, dynamic `generateMetadata`, title templates, and OpenGraph configuration.
+Guide to setting page metadata in Next.js 16 for SEO, social sharing, and browser tab titles. Covers static metadata exports, dynamic `generateMetadata`, title templates, and OpenGraph configuration.
 
 ## Static Metadata Export
 

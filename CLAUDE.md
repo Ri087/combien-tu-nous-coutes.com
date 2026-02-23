@@ -7,7 +7,7 @@
 
 | Composant | Technologie | Docs |
 |-----------|-------------|------|
-| Framework | Next.js 15 (App Router, Turbopack) | [nextjs.org/docs](https://nextjs.org/docs) |
+| Framework | Next.js 16 (App Router, Turbopack) | [nextjs.org/docs](https://nextjs.org/docs) |
 | Database | Neon (Serverless Postgres) + Drizzle ORM | [orm.drizzle.team](https://orm.drizzle.team) |
 | Auth | Better Auth (email/password + OTP) | [better-auth.com](https://www.better-auth.com) |
 | UI | AlignUI (Tailwind-based design system) | Voir `/components/ui/` |

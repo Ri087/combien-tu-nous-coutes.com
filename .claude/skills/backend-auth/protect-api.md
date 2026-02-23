@@ -90,15 +90,14 @@ Any procedure built from `protectedProcedure` automatically requires authenticat
 
 ### Step 1: Create the Router File
 
-Create a new file in `/orpc/[feature].ts`:
+Create a new file in `/server/routers/[feature].ts`:
 
 ```typescript
-// /orpc/projects.ts
+// /server/routers/projects.ts
 import { protectedProcedure } from "@/server/procedure/protected.procedure";
 import { z } from "zod";
-import { db } from "@/db";
 import { eq } from "drizzle-orm";
-import { projects } from "@/db/schema";
+import { project } from "@/db/schema";
 
 export const projectsRouter = {
   // READ procedure: MUST use .route({ method: 'GET' })
@@ -107,8 +106,8 @@ export const projectsRouter = {
     .input(z.object({ limit: z.number().optional() }))
     .handler(async ({ context, input }) => {
       // context.session is typed and guaranteed non-null
-      return db.query.projects.findMany({
-        where: eq(projects.userId, context.session.user.id),
+      return context.db.query.project.findMany({
+        where: eq(project.userId, context.session.user.id),
         limit: input.limit ?? 10,
       });
     }),
@@ -118,29 +117,29 @@ export const projectsRouter = {
     .route({ method: "GET" })
     .input(z.object({ id: z.string().uuid() }))
     .handler(async ({ context, input }) => {
-      const project = await db.query.projects.findFirst({
-        where: eq(projects.id, input.id),
+      const found = await context.db.query.project.findFirst({
+        where: eq(project.id, input.id),
       });
 
-      if (!project || project.userId !== context.session.user.id) {
+      if (!found || found.userId !== context.session.user.id) {
         throw new ORPCError("NOT_FOUND");
       }
 
-      return project;
+      return found;
     }),
 
   // WRITE procedure: NO .route() -- defaults to POST
   create: protectedProcedure
     .input(z.object({ name: z.string().min(1) }))
     .handler(async ({ context, input }) => {
-      const [project] = await db
-        .insert(projects)
+      const [created] = await context.db
+        .insert(project)
         .values({
           name: input.name,
           userId: context.session.user.id,
         })
         .returning();
-      return project;
+      return created;
     }),
 
   // WRITE procedure: update
@@ -150,10 +149,10 @@ export const projectsRouter = {
       name: z.string().min(1),
     }))
     .handler(async ({ context, input }) => {
-      const [updated] = await db
-        .update(projects)
+      const [updated] = await context.db
+        .update(project)
         .set({ name: input.name })
-        .where(eq(projects.id, input.id))
+        .where(eq(project.id, input.id))
         .returning();
       return updated;
     }),
@@ -162,7 +161,7 @@ export const projectsRouter = {
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .handler(async ({ context, input }) => {
-      await db.delete(projects).where(eq(projects.id, input.id));
+      await context.db.delete(project).where(eq(project.id, input.id));
       return { success: true };
     }),
 };
@@ -174,7 +173,7 @@ Add it to `/server/routers/_app.ts`:
 
 ```typescript
 import { base } from "@/server/context";
-import { projectsRouter } from "@/orpc/projects";
+import { projectsRouter } from "./projects";
 
 export const appRouter = base.router({
   projects: projectsRouter,
@@ -260,7 +259,7 @@ The auth middleware throws `ORPCError("UNAUTHORIZED")` which maps to HTTP 401. Y
 import { ORPCError } from "@orpc/server";
 
 .handler(async ({ context, input }) => {
-  const item = await db.query.items.findFirst({
+  const item = await context.db.query.items.findFirst({
     where: eq(items.id, input.id),
   });
 

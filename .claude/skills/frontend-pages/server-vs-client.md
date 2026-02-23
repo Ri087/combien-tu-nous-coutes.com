@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Guide to choosing between Server Components and Client Components in the Next.js 15 App Router. Covers when to use each, data fetching patterns, form components, and composition strategies.
+Guide to choosing between Server Components and Client Components in the Next.js 16 App Router. Covers when to use each, data fetching patterns, form components, and composition strategies.
 
 ## The Default: Server Components
 

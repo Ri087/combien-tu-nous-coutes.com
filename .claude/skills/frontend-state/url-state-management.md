@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Complete guide to managing URL search parameter state using nuqs v2.4.3 in this Next.js 15 codebase. Covers client-side reading/writing of URL params, server-side parsing, and integration with oRPC queries.
+Complete guide to managing URL search parameter state using nuqs v2.4.3 in this Next.js 16 codebase. Covers client-side reading/writing of URL params, server-side parsing, and integration with oRPC queries.
 
 ## Prerequisites
 
@@ -86,7 +86,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
 }
 ```
 
-**Important:** In Next.js 15, `searchParams` is a `Promise` and must be awaited.
+**Important:** In Next.js 16, `searchParams` is a `Promise` and must be awaited.
 
 ## Pattern 3: Client-Side Single Param (useQueryState)
 
@@ -322,4 +322,4 @@ parseAsBoolean.withDefault(false)    // boolean (never null)
 - PREFER `useQueryStates` over multiple `useQueryState` calls when reading related params
 - USE URL state for: search, filters, pagination, tabs, sort order, modals (open/close)
 - DO NOT use URL state for: form input values, temporary UI state, sensitive data
-- REMEMBER that `searchParams` is a `Promise` in Next.js 15 -- always await it
+- REMEMBER that `searchParams` is a `Promise` in Next.js 16 -- always await it

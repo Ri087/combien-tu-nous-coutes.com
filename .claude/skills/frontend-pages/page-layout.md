@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Guide to understanding and creating page layouts in the Next.js 15 App Router. Covers route group layouts, nesting, authentication checks, provider configuration, and responsive design.
+Guide to understanding and creating page layouts in the Next.js 16 App Router. Covers route group layouts, nesting, authentication checks, provider configuration, and responsive design.
 
 ## Layout Architecture Overview
 

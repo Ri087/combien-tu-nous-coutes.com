@@ -22,7 +22,7 @@ Most feature components (cards, lists, modals, pages) do NOT need forwardRef.
 
 ## Basic Syntax (React 19+)
 
-In React 19 (used with Next.js 15), `ref` is a regular prop. You do not need `React.forwardRef` -- just accept `ref` as a prop.
+In React 19 (used with Next.js 16), `ref` is a regular prop. You do not need `React.forwardRef` -- just accept `ref` as a prop.
 
 ```tsx
 "use client";

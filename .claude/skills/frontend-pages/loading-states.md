@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Guide to implementing loading states in Next.js 15 pages. Covers `loading.tsx` files, Suspense boundaries, skeleton components, and the StaggeredFadeLoader component.
+Guide to implementing loading states in Next.js 16 pages. Covers `loading.tsx` files, Suspense boundaries, skeleton components, and the StaggeredFadeLoader component.
 
 ## Loading Approaches
 

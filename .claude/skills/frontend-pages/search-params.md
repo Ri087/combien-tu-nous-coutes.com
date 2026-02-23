@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Guide to handling URL search parameters in Next.js 15 pages. Covers server-side parsing with the nuqs cache, passing values to client components, updating URL state from client components, and common search params patterns.
+Guide to handling URL search parameters in Next.js 16 pages. Covers server-side parsing with the nuqs cache, passing values to client components, updating URL state from client components, and common search params patterns.
 
-## How Search Params Work in Next.js 15
+## How Search Params Work in Next.js 16
 
-In Next.js 15, `searchParams` is a `Promise` passed to page components:
+In Next.js 16, `searchParams` is a `Promise` passed to page components:
 
 ```tsx
 type PageProps = {
@@ -369,7 +369,7 @@ export function ProjectList() {
 
 ## Rules
 
-- `searchParams` is a `Promise` in Next.js 15 -- always await it
+- `searchParams` is a `Promise` in Next.js 16 -- always await it
 - The `searchParamsCache.parse()` call in the server page is REQUIRED for client components to work
 - Use `withDefault()` on parsers to avoid null handling in client components
 - Import `createSearchParamsCache` and parsers from `"nuqs/server"`

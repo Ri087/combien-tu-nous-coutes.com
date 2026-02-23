@@ -29,7 +29,7 @@ actions:
          - Leverage server components for direct data fetching
          - Set appropriate cache options and revalidation strategies
 
-      3. Next.js 15 Updates:
+      3. Next.js 16 Updates:
          - Always use async/await with headers(), cookies() and other request APIs
          - Update authentication flows for async compatibility
 
@@ -43,7 +43,7 @@ examples:
     output: "Use Next.js built-in routing instead of external routing libraries"
 
   - input: |
-      // Bad: Synchronous headers in Next.js 15
+      // Bad: Synchronous headers in Next.js 16
       import { headers } from 'next/headers'
 
       export default function Page() {
@@ -51,14 +51,14 @@ examples:
         // ...
       }
 
-      // Good: Async headers in Next.js 15
+      // Good: Async headers in Next.js 16
       import { headers } from 'next/headers'
 
       export default async function Page() {
         const headersList = await headers()
         // ...
       }
-    output: "Always await headers() in Next.js 15 as per the new async request APIs requirement"
+    output: "Always await headers() in Next.js 16 as per the new async request APIs requirement"
 
 metadata:
   priority: high

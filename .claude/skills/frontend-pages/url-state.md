@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Guide to managing URL state with the `nuqs` library in the Next.js 15 App Router. Covers `createSearchParamsCache`, parser types, the `search-params.ts` file pattern, and client-side URL state updates.
+Guide to managing URL state with the `nuqs` library in the Next.js 16 App Router. Covers `createSearchParamsCache`, parser types, the `search-params.ts` file pattern, and client-side URL state updates.
 
 ## What is nuqs?
 

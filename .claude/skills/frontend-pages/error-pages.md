@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Guide to implementing error handling pages in Next.js 15. Covers `error.tsx` files, `not-found.tsx` files, error boundaries, and error reset patterns.
+Guide to implementing error handling pages in Next.js 16. Covers `error.tsx` files, `not-found.tsx` files, error boundaries, and error reset patterns.
 
 ## Error Handling Hierarchy
 
