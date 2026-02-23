@@ -124,7 +124,7 @@ export function useCreateProject() {
   return useMutation(
     orpc.projects.create.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: orpc.projects.list.queryKey() });
+        queryClient.invalidateQueries({ queryKey: orpc.projects.list.queryOptions({ input: {} }).queryKey });
       },
     })
   );
@@ -135,7 +135,7 @@ export function useDeleteProject() {
   return useMutation(
     orpc.projects.delete.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: orpc.projects.list.queryKey() });
+        queryClient.invalidateQueries({ queryKey: orpc.projects.list.queryOptions({ input: {} }).queryKey });
       },
     })
   );

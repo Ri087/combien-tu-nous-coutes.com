@@ -92,13 +92,14 @@ ls -la components/ui/
 **Schema** : Définir dans `/db/schema/`
 
 ```typescript
-// db/schema/projects.ts
+// db/schema/project/schema.ts
 import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { user } from '../auth/schema';
 
-export const projects = pgTable('projects', {
+export const project = pgTable('project', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
-  userId: uuid('user_id').notNull(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 ```
@@ -118,6 +119,8 @@ Créer les procedures dans `/server/routers/` et les enregistrer dans `_app.ts` 
 // server/routers/projects.ts
 import { protectedProcedure } from '@/server/procedure/protected.procedure';
 import { z } from 'zod';
+import { eq } from 'drizzle-orm';
+import { project } from '@/db/schema';
 
 export const projectsRouter = {
   // ✅ Lecture → TOUJOURS ajouter .route({ method: 'GET' })
@@ -125,8 +128,8 @@ export const projectsRouter = {
     .route({ method: 'GET' })
     .input(z.object({ limit: z.number().optional() }))
     .handler(async ({ context, input }) => {
-      return db.query.projects.findMany({
-        where: eq(projects.userId, context.session.user.id),
+      return context.db.query.project.findMany({
+        where: eq(project.userId, context.session.user.id),
         limit: input.limit ?? 10,
       });
     }),
@@ -135,7 +138,7 @@ export const projectsRouter = {
   create: protectedProcedure
     .input(z.object({ name: z.string().min(1) }))
     .handler(async ({ context, input }) => {
-      return db.insert(projects).values({
+      return context.db.insert(project).values({
         name: input.name,
         userId: context.session.user.id,
       }).returning();
@@ -185,7 +188,7 @@ const projects: any = await getProjects();
 
 1. **Créer le schema** dans `/db/schema/[feature].ts`
 2. **Push le schema** : `pnpm db:push`
-3. **Créer le router oRPC** dans `/orpc/[feature].ts`
+3. **Créer le router oRPC** dans `/server/routers/[feature].ts`
 4. **Créer les pages** dans `/app/(application)/[feature]/`
 5. **Utiliser les composants AlignUI** pour l'UI
 6. **Tester** : `pnpm build` doit passer

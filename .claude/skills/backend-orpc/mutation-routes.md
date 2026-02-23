@@ -192,7 +192,7 @@ await orpcClient.projects.delete({ id: "123" });
 const mutation = useMutation(
   orpc.projects.create.mutationOptions({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: orpc.projects.list.queryKey() });
+      queryClient.invalidateQueries({ queryKey: orpc.projects.list.queryOptions({ input: {} }).queryKey });
     },
   })
 );
