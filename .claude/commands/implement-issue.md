@@ -29,7 +29,7 @@ Fetch a Linear issue and implement it in the current repo.
 
 ```bash
 # Detect base branch
-BASE=$(git rev-parse --verify origin/dev 2>/dev/null && echo dev || echo main)
+BASE=$(git rev-parse --verify origin/dev >/dev/null 2>&1 && echo dev || echo main)
 git checkout $BASE && git pull origin $BASE
 
 # Create feature branch
@@ -64,14 +64,7 @@ git checkout -b feat/{issue-id-lowercase}-{slug}
 3. **Build**: `pnpm build` (if feasible)
 4. Fix any errors before finishing
 
-### 6 — Update Linear
-
-If MCP Linear is available:
-1. Move issue to "In Progress" at start
-2. Move issue to "Done" when complete
-3. Add a comment summarizing what was implemented
-
-### 7 — Summary
+### 6 — Summary
 
 Print a summary:
 ```
@@ -80,14 +73,14 @@ Branch: feat/{issue-id}-{slug}
 Commits: {count}
 Files changed: {count}
 
-Ready for PR — run /open-pr to submit.
+Ready for PR — run /pr to submit.
 ```
 
 ## Rules
 
 - **1 branch = 1 issue** (keep it focused)
 - **Always reference the issue** in commit messages
-- **Don't open the PR** — that's `/open-pr`'s job
-- **Don't push** unless asked — `/open-pr` handles that
+- **Don't open the PR** — that's `/pr`'s job
+- **Don't push** unless asked — `/pr` handles that
 - **Self-heal**: if typecheck/lint fails, fix it before finishing
 - **Ask if unclear** — don't guess on ambiguous requirements

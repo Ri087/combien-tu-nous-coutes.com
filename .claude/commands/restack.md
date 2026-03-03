@@ -10,7 +10,7 @@ Restack the current branch on dev while properly handling Drizzle migrations.
 
 2. **Handle conflicts**
    - If conflicts occur in migration files (`packages/database/migrations/`):
-     - **ALWAYS keep dev's version** using `git checkout --theirs <file>`
+     - **ALWAYS keep dev's version** using `git checkout --ours <file>` (during rebase, `--ours` = upstream/dev)
      - Delete any migration `.sql` files from this branch (the ones not on dev)
      - For snapshots and `_journal.json`, use dev's version
    - For other conflicts (non-migration files):

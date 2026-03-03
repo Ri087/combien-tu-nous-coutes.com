@@ -10,8 +10,8 @@ Works in any context:
 ## Usage
 
 ```
-/open-pr
-/open-pr LKFL-200
+/pr
+/pr LKFL-200
 ```
 
 `$ARGUMENTS` = (optional) Linear issue identifier for PR metadata. If omitted, inferred from branch name.
@@ -29,7 +29,7 @@ Works in any context:
 4. **Detect base branch**:
    ```bash
    # PR always targets dev if it exists, otherwise main
-   BASE=$(git rev-parse --verify origin/dev 2>/dev/null && echo dev || echo main)
+   BASE=$(git rev-parse --verify origin/dev >/dev/null 2>&1 && echo dev || echo main)
    ```
 
 ### 2 — Pre-flight Checks
@@ -103,10 +103,7 @@ fi
 ### 5 — Post-PR
 
 1. **Print the PR URL**
-2. **Update Linear** (if MCP available):
-   - Add PR link as comment on the issue
-   - Move issue to "In Review" if that status exists
-3. **Summary**:
+2. **Summary**:
    ```
    🚀 PR opened!
    URL: {pr_url}
