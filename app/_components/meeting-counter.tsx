@@ -500,10 +500,32 @@ export function MeetingCounter() {
       </main>
 
       {/* Footer */}
-      <footer className="px-6 py-4 text-center">
-        <p className="text-paragraph-xs text-text-soft-400">
-          combien-tu-nous-coutes.com — aucune donnée collectée
-        </p>
+      <footer className="px-6 py-4">
+        <div className="mx-auto flex max-w-[600px] flex-col items-center gap-2 sm:flex-row sm:justify-between">
+          <p className="text-paragraph-xs text-text-soft-400">
+            combien-tu-nous-coutes.com — aucune donnée collectée
+          </p>
+          <nav className="flex gap-3">
+            <a
+              className="text-paragraph-xs text-text-soft-400 underline-offset-2 hover:text-text-sub-600 hover:underline"
+              href="/privacy-policy"
+            >
+              Confidentialité
+            </a>
+            <a
+              className="text-paragraph-xs text-text-soft-400 underline-offset-2 hover:text-text-sub-600 hover:underline"
+              href="/cookie-policy"
+            >
+              Cookies
+            </a>
+            <a
+              className="text-paragraph-xs text-text-soft-400 underline-offset-2 hover:text-text-sub-600 hover:underline"
+              href="/terms-of-service"
+            >
+              CGU
+            </a>
+          </nav>
+        </div>
       </footer>
     </div>
   );
