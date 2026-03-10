@@ -3,6 +3,7 @@ export const MARKETING_PAGES = {
   ABOUT: "/about",
   CONTACT: "/contact",
   PRIVACY_POLICY: "/privacy-policy",
+  COOKIE_POLICY: "/cookie-policy",
   TERMS_OF_SERVICE: "/terms-of-service",
   FAQ: "/faq",
 };
