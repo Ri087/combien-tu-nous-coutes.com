@@ -386,6 +386,15 @@ body {
   min-height: -webkit-fill-available;
 }
 
+/* Hide number input spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 .keyboard-nav-active tr:hover td {
   /* biome-ignore lint/nursery/noImportantStyles: Overriding important styles */
   background-color: transparent !important;

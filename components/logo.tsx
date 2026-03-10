@@ -13,7 +13,7 @@ function Logo({ className, ...props }: React.ComponentProps<"svg">) {
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <title>{"impulse-logo"}</title>
+      <title>{"combien-tu-nous-coutes-logo"}</title>
       <path d="M120 78H78L155 1H163C192.5 1 233 34 233 74V236L156 236V114.5C156 93.5 134 78 120 78Z" />
       <path d="M1 155V233H78V78L1 155Z" />
       <path d="M1 1V78H78V1H1Z" />
