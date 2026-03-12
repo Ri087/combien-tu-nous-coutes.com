@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 import { Logo } from "@/components/logo";
 import * as LinkButton from "@/components/ui/link-button";
@@ -10,44 +10,28 @@ import { PAGES } from "@/constants/pages";
 const actions = {
   [PAGES.SIGN_IN]: {
     text: "Don't have an account?",
-    link: {
-      label: "Sign up",
-      href: PAGES.SIGN_UP,
-    },
+    link: { label: "Sign up", href: PAGES.SIGN_UP },
   },
   [PAGES.SIGN_UP]: {
     text: "Already have an account?",
-    link: {
-      label: "Sign in",
-      href: PAGES.SIGN_IN,
-    },
+    link: { label: "Sign in", href: PAGES.SIGN_IN },
   },
   [PAGES.FORGOT_PASSWORD]: {
     text: "Changed your mind?",
-    link: {
-      label: "Sign in",
-      href: PAGES.SIGN_IN,
-    },
+    link: { label: "Sign in", href: PAGES.SIGN_IN },
   },
   [PAGES.VERIFICATION]: {
     text: "Changed your mind?",
-    link: {
-      label: "Sign in",
-      href: PAGES.SIGN_IN,
-    },
+    link: { label: "Sign in", href: PAGES.SIGN_IN },
   },
   [PAGES.RESET_PASSWORD]: {
     text: "Changed your mind?",
-    link: {
-      label: "Sign in",
-      href: PAGES.SIGN_IN,
-    },
+    link: { label: "Sign in", href: PAGES.SIGN_IN },
   },
 } as const;
 
 export default function AuthHeader() {
   const pathname = usePathname();
-  const router = useRouter();
 
   const action = actions[pathname as keyof typeof actions];
   if (!action) {
@@ -63,15 +47,7 @@ export default function AuthHeader() {
       <div className="flex items-center gap-1.5">
         <div className="text-paragraph-sm text-text-sub-600">{action.text}</div>
         <LinkButton.Root asChild size="medium" underline variant="primary">
-          {action.link.href ? (
-            <Link href={action.link.href}>{action.link.label}</Link>
-          ) : (
-            // biome-ignore lint/a11y/useKeyWithClickEvents: We are using a span to trigger the click event
-            // biome-ignore lint/nursery/noNoninteractiveElementInteractions: We are using a span to trigger the click event
-            <span className="cursor-pointer" onClick={() => router.back()}>
-              {action.link.label}
-            </span>
-          )}
+          <Link href={action.link.href}>{action.link.label}</Link>
         </LinkButton.Root>
       </div>
     </div>
