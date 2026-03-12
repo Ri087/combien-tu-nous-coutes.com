@@ -28,9 +28,10 @@ const geistMono = localFont({
 });
 
 const SITE_URL = "https://combien-tu-nous-coutes.com";
-const TITLE = "Combien tu nous coûtes ? — Calculateur de coût de réunion";
+const TITLE =
+  "Combien tu nous coûtes ? — Calculateur de coût de réunion en temps réel";
 const DESCRIPTION =
-  "Calcule en temps réel combien ta réunion coûte à l'entreprise. Nombre de participants, salaire brut, charges patronales incluses. Lance le compteur, observe, souffre.";
+  "Calculateur de coût de réunion gratuit. Découvrez en temps réel combien votre réunion coûte à l'entreprise. Calcul automatique avec nombre de participants, salaire brut moyen et charges patronales (45%). Lance le compteur, observe les euros s'échapper.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -40,12 +41,18 @@ export const metadata: Metadata = {
     "coût réunion",
     "calculateur réunion",
     "combien coûte une réunion",
+    "coût réunion en temps réel",
+    "calcul coût réunion",
     "productivité",
     "meeting cost calculator",
     "charges patronales",
     "coût entreprise",
     "temps perdu réunion",
     "réunionite",
+    "calculatrice réunion",
+    "outil productivité",
+    "waste meeting",
+    "réunion inutile",
   ],
   authors: [{ name: "combien-tu-nous-coutes.com" }],
   creator: "combien-tu-nous-coutes.com",
@@ -53,17 +60,27 @@ export const metadata: Metadata = {
     canonical: SITE_URL,
   },
   openGraph: {
-    title: "Combien tu nous coûtes ?",
+    title: "Combien tu nous coûtes ? — Calculateur de coût de réunion",
     description: DESCRIPTION,
     url: SITE_URL,
-    siteName: "combien-tu-nous-coutes.com",
+    siteName: "Combien tu nous coûtes",
     locale: "fr_FR",
     type: "website",
+    images: [
+      {
+        url: `${SITE_URL}/opengraph-image.jpeg`,
+        width: 1200,
+        height: 630,
+        alt: "Calculateur de coût de réunion",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Combien tu nous coûtes ?",
+    title: "Combien tu nous coûtes ? — Calculateur de coût de réunion",
     description: DESCRIPTION,
+    images: [`${SITE_URL}/twitter-image.jpeg`],
+    creator: "@combien_coûtes",
   },
   robots: {
     index: true,
@@ -83,6 +100,39 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        name: "Combien tu nous coûtes",
+        url: "https://combien-tu-nous-coutes.com",
+        sameAs: [],
+        description:
+          "Calculateur de coût de réunion en temps réel - Découvrez combien votre réunion coûte à l'entreprise",
+        contactPoint: {
+          "@type": "ContactPoint",
+          contactType: "Support",
+          url: "https://combien-tu-nous-coutes.com",
+        },
+      },
+      {
+        "@type": "WebApplication",
+        name: "Combien tu nous coûtes",
+        url: "https://combien-tu-nous-coutes.com",
+        applicationCategory: "BusinessApplication",
+        description:
+          "Calculateur de coût de réunion en temps réel avec calcul des charges patronales",
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "EUR",
+          description: "Gratuit",
+        },
+      },
+    ],
+  };
+
   return (
     <html
       className={cn(
@@ -94,6 +144,13 @@ export default function RootLayout({
       lang="fr"
       suppressHydrationWarning
     >
+      <head>
+        <Script
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          id="json-ld"
+          type="application/ld+json"
+        />
+      </head>
       {env.NEXT_PUBLIC_REACT_SCAN_DEVTOOLS === "true" &&
         env.NODE_ENV === "development" && (
           <Script
