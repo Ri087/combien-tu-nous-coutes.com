@@ -29,6 +29,25 @@ import * as LevelBar from "./level-bar";
 const uppercaseRegex = /[A-Z]/;
 const numberRegex = /[0-9]/;
 
+function CriteriaItem({
+  met,
+  children,
+}: {
+  met: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-1.5 text-paragraph-xs text-text-sub-600">
+      {met ? (
+        <RiCheckboxCircleFill className="size-4 shrink-0 text-success-base" />
+      ) : (
+        <RiCloseCircleFill className="size-4 shrink-0 text-text-soft-400" />
+      )}
+      {children}
+    </div>
+  );
+}
+
 export function ResetPasswordForm() {
   const [{ token }] = useQueryStates(resetPasswordParsers);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -165,42 +184,13 @@ export function ResetPasswordForm() {
           <div className="text-paragraph-xs text-text-sub-600">
             Your password must meet the following criteria:
           </div>
-          <div
-            className={cn(
-              "flex items-center gap-1.5 text-paragraph-xs text-text-sub-600"
-            )}
-          >
-            {criteria.uppercase ? (
-              <RiCheckboxCircleFill className="size-4 shrink-0 text-success-base" />
-            ) : (
-              <RiCloseCircleFill className="size-4 shrink-0 text-text-soft-400" />
-            )}
+          <CriteriaItem met={criteria.uppercase}>
             At least one uppercase letter
-          </div>
-          <div
-            className={cn(
-              "flex items-center gap-1.5 text-paragraph-xs text-text-sub-600"
-            )}
-          >
-            {criteria.number ? (
-              <RiCheckboxCircleFill className="size-4 shrink-0 text-success-base" />
-            ) : (
-              <RiCloseCircleFill className="size-4 shrink-0 text-text-soft-400" />
-            )}
-            At least one number
-          </div>
-          <div
-            className={cn(
-              "flex items-center gap-1.5 text-paragraph-xs text-text-sub-600"
-            )}
-          >
-            {criteria.length ? (
-              <RiCheckboxCircleFill className="size-4 shrink-0 text-success-base" />
-            ) : (
-              <RiCloseCircleFill className="size-4 shrink-0 text-text-soft-400" />
-            )}
+          </CriteriaItem>
+          <CriteriaItem met={criteria.number}>At least one number</CriteriaItem>
+          <CriteriaItem met={criteria.length}>
             At least 8 characters
-          </div>
+          </CriteriaItem>
         </div>
       </div>
 

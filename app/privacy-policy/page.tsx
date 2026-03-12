@@ -20,7 +20,7 @@ export default function PrivacyPolicyPage() {
         Derni\u00e8re mise \u00e0 jour : 10 mars 2026
       </p>
 
-      <div className="space-y-8 text-paragraph-sm text-text-sub-600 [&_h2]:mb-3 [&_h2]:text-label-md [&_h2]:text-text-strong-950 [&_ul]:list-disc [&_ul]:pl-5">
+      <div className="space-y-8 text-paragraph-sm text-text-strong-950 [&_h2]:mb-3 [&_h2]:text-label-md [&_h2]:text-text-strong-950 [&_ul]:list-disc [&_ul]:pl-5">
         <section>
           <h2>1. Introduction</h2>
           <p>

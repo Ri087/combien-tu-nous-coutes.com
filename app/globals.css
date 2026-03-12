@@ -395,6 +395,22 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
+/* Respect reduced motion preferences — !important needed to override inline styles and high-specificity animation rules */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    /* biome-ignore lint/nursery/noImportantStyles: must override all animation sources */
+    animation-duration: 0.01ms !important;
+    /* biome-ignore lint/nursery/noImportantStyles: must override all animation sources */
+    animation-iteration-count: 1 !important;
+    /* biome-ignore lint/nursery/noImportantStyles: must override all transition sources */
+    transition-duration: 0.01ms !important;
+    /* biome-ignore lint/nursery/noImportantStyles: must override smooth scroll */
+    scroll-behavior: auto !important;
+  }
+}
+
 .keyboard-nav-active tr:hover td {
   /* biome-ignore lint/nursery/noImportantStyles: Overriding important styles */
   background-color: transparent !important;

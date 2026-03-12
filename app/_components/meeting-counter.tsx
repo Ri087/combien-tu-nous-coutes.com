@@ -8,13 +8,31 @@ import {
   RiShareBoxLine,
   RiStopCircleLine,
 } from "@remixicon/react";
-import { useCallback, useEffect, useRef, useState } from "react";
-
+import Link from "next/link";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import * as Badge from "@/components/ui/badge";
 import * as Button from "@/components/ui/button";
 import * as Divider from "@/components/ui/divider";
 import * as FancyButton from "@/components/ui/fancy-button";
 import { cn } from "@/lib/utils/cn";
+import { BackgroundOrbs } from "./background-orbs";
+
+/* ─────────────────────────── Constants ─────────────────────────── */
+
+/** Charges patronales ~45% */
+const CHARGES_PATRONALES = 1.45;
+/** Heures mensuelles légales en France */
+const MONTHLY_HOURS = 151.67;
+/** Secondes par heure */
+const SECONDS_PER_HOUR = 3600;
+/** Seuil de coût élevé (€) */
+const COST_THRESHOLD_HIGH = 500;
+/** Seuil de coût moyen (€) */
+const COST_THRESHOLD_MID = 150;
+/** Durée d'affichage du message "copié" (ms) */
+const COPIED_FEEDBACK_DURATION = 2000;
+/** Intervalle de mise à jour de l'aria-live (ms) */
+const ARIA_LIVE_INTERVAL = 5000;
 
 /* ─────────────────────────── Odometer ─────────────────────────── */
 
@@ -37,14 +55,17 @@ function OdometerDigit({ digit }: { digit: number }) {
 
 function Odometer({ value, className }: { value: string; className?: string }) {
   return (
-    <span aria-label={value} className={className}>
-      {value.split("").map((char, i) => {
-        const digit = Number.parseInt(char, 10);
-        if (Number.isNaN(digit)) {
-          return <span key={`s${i}`}>{char}</span>;
-        }
-        return <OdometerDigit digit={digit} key={`d${i}`} />;
-      })}
+    <span className={className}>
+      <span className="sr-only">{value}</span>
+      <span aria-hidden="true">
+        {value.split("").map((char, i) => {
+          const digit = Number.parseInt(char, 10);
+          if (Number.isNaN(digit)) {
+            return <span key={`s${i}`}>{char}</span>;
+          }
+          return <OdometerDigit digit={digit} key={`d${i}`} />;
+        })}
+      </span>
     </span>
   );
 }
@@ -56,17 +77,20 @@ function useTimer(
   startTimestamp: number | null
 ): [number, () => void] {
   const [elapsed, setElapsed] = useState(0);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (running && startTimestamp) {
-      intervalRef.current = setInterval(
-        () => setElapsed((Date.now() - startTimestamp) / 1000),
-        50
-      );
-    } else if (intervalRef.current) clearInterval(intervalRef.current);
+      const tick = () => {
+        setElapsed((Date.now() - startTimestamp) / 1000);
+        rafRef.current = requestAnimationFrame(tick);
+      };
+      rafRef.current = requestAnimationFrame(tick);
+    }
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
     };
   }, [running, startTimestamp]);
 
@@ -98,33 +122,136 @@ function StatRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+/* ─────────────────────────── State ─────────────────────────── */
+
+type State = {
+  people: string;
+  salary: string;
+  startTime: string;
+  running: boolean;
+  done: boolean;
+  startTimestamp: number | null;
+  copied: boolean;
+  copiedLive: boolean;
+  liveAnnouncement: string;
+};
+
+type Action =
+  | { type: "SET_PEOPLE"; value: string }
+  | { type: "SET_SALARY"; value: string }
+  | { type: "SET_START_TIME"; value: string }
+  | { type: "START"; timestamp: number }
+  | { type: "STOP" }
+  | { type: "RESET" }
+  | { type: "SET_COPIED"; value: boolean }
+  | { type: "SET_COPIED_LIVE"; value: boolean }
+  | { type: "SET_LIVE_ANNOUNCEMENT"; value: string };
+
+const initialState: State = {
+  people: "",
+  salary: "",
+  startTime: "",
+  running: false,
+  done: false,
+  startTimestamp: null,
+  copied: false,
+  copiedLive: false,
+  liveAnnouncement: "",
+};
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "SET_PEOPLE":
+      return { ...state, people: action.value };
+    case "SET_SALARY":
+      return { ...state, salary: action.value };
+    case "SET_START_TIME":
+      return { ...state, startTime: action.value };
+    case "START":
+      return {
+        ...state,
+        running: true,
+        done: false,
+        startTimestamp: action.timestamp,
+      };
+    case "STOP":
+      return { ...state, running: false, done: true };
+    case "RESET":
+      return {
+        ...state,
+        running: false,
+        done: false,
+        startTimestamp: null,
+        liveAnnouncement: "",
+      };
+    case "SET_COPIED":
+      return { ...state, copied: action.value };
+    case "SET_COPIED_LIVE":
+      return { ...state, copiedLive: action.value };
+    case "SET_LIVE_ANNOUNCEMENT":
+      return { ...state, liveAnnouncement: action.value };
+  }
+}
+
 /* ─────────────────────────── Component ─────────────────────────── */
 
 export function MeetingCounter() {
-  const [people, setPeople] = useState("");
-  const [salary, setSalary] = useState("");
-  const [running, setRunning] = useState(false);
-  const [done, setDone] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [copiedLive, setCopiedLive] = useState(false);
-  const [startTimestamp, setStartTimestamp] = useState<number | null>(null);
-  const [isSharedSession, setIsSharedSession] = useState(false);
-  const [startTime, setStartTime] = useState("");
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const {
+    people,
+    salary,
+    startTime,
+    running,
+    done,
+    startTimestamp,
+    copied,
+    copiedLive,
+    liveAnnouncement,
+  } = state;
 
-  // Coût employeur = salaire brut × 1.45 (charges patronales ~45%)
-  const CHARGES_PATRONALES = 1.45;
+  const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const copiedLiveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+
   const costPerSecond =
     ((Number.parseFloat(salary) || 0) *
       CHARGES_PATRONALES *
       (Number.parseFloat(people) || 0)) /
-    151.67 /
-    3600;
+    MONTHLY_HOURS /
+    SECONDS_PER_HOUR;
   const [elapsed, resetTimer] = useTimer(running, startTimestamp);
   const cost = elapsed * costPerSecond;
 
   const canStart = costPerSecond > 0;
-  const costLevel = cost > 500 ? "high" : cost > 150 ? "mid" : "low";
+  const costLevel =
+    cost > COST_THRESHOLD_HIGH
+      ? "high"
+      : cost > COST_THRESHOLD_MID
+        ? "mid"
+        : "low";
   const isSetup = !(running || done);
+
+  // Periodic aria-live announcements for screen readers
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => {
+      dispatch({
+        type: "SET_LIVE_ANNOUNCEMENT",
+        value: `Coût actuel : ${fmtEuro(cost)} euros, ${fmtTime(elapsed)} écoulées`,
+      });
+    }, ARIA_LIVE_INTERVAL);
+    return () => clearInterval(id);
+  }, [running, cost, elapsed]);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+      if (copiedLiveTimeoutRef.current)
+        clearTimeout(copiedLiveTimeoutRef.current);
+    };
+  }, []);
 
   // Read URL params on mount for shared sessions
   useEffect(() => {
@@ -133,18 +260,30 @@ export function MeetingCounter() {
     const s = params.get("s");
     const t = params.get("t");
     if (p && s && t) {
-      setPeople(p);
-      setSalary(s);
-      setStartTimestamp(Number(t));
-      setRunning(true);
-      setIsSharedSession(true);
+      const numP = Number(p);
+      const numS = Number(s);
+      const numT = Number(t);
+      if (
+        !(
+          Number.isFinite(numP) &&
+          Number.isFinite(numS) &&
+          Number.isFinite(numT)
+        ) ||
+        numP <= 0 ||
+        numS <= 0 ||
+        numT <= 0
+      ) {
+        return;
+      }
+      dispatch({ type: "SET_PEOPLE", value: p });
+      dispatch({ type: "SET_SALARY", value: s });
+      dispatch({ type: "START", timestamp: numT });
     }
   }, []);
 
-  const handleStart = () => {
+  const handleStart = useCallback(() => {
     if (!canStart) return;
     resetTimer();
-    setDone(false);
     let ts = Date.now();
     if (startTime) {
       const [h, m] = startTime.split(":").map(Number);
@@ -154,30 +293,22 @@ export function MeetingCounter() {
         ts = d.getTime();
       }
     }
-    setStartTimestamp(ts);
-    setRunning(true);
-    setIsSharedSession(false);
-    // Set URL params
+    dispatch({ type: "START", timestamp: ts });
     const url = new URL(window.location.href);
     url.searchParams.set("p", people);
     url.searchParams.set("s", salary);
     url.searchParams.set("t", String(ts));
     window.history.replaceState({}, "", url.toString());
-  };
+  }, [canStart, resetTimer, startTime, people, salary]);
 
   const handleStop = () => {
-    setRunning(false);
-    setDone(true);
-    // Clear URL params
+    dispatch({ type: "STOP" });
     window.history.replaceState({}, "", window.location.pathname);
   };
 
   const handleReset = () => {
     resetTimer();
-    setRunning(false);
-    setDone(false);
-    setStartTimestamp(null);
-    setIsSharedSession(false);
+    dispatch({ type: "RESET" });
     window.history.replaceState({}, "", window.location.pathname);
   };
 
@@ -194,8 +325,12 @@ export function MeetingCounter() {
       });
     } else {
       navigator.clipboard.writeText(shareUrl);
-      setCopiedLive(true);
-      setTimeout(() => setCopiedLive(false), 2000);
+      dispatch({ type: "SET_COPIED_LIVE", value: true });
+      if (copiedLiveTimeoutRef.current)
+        clearTimeout(copiedLiveTimeoutRef.current);
+      copiedLiveTimeoutRef.current = setTimeout(() => {
+        dispatch({ type: "SET_COPIED_LIVE", value: false });
+      }, COPIED_FEEDBACK_DURATION);
     }
   };
 
@@ -205,50 +340,51 @@ export function MeetingCounter() {
       navigator.share({ text: txt });
     } else {
       navigator.clipboard.writeText(txt);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      dispatch({ type: "SET_COPIED", value: true });
+      if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+      copiedTimeoutRef.current = setTimeout(() => {
+        dispatch({ type: "SET_COPIED", value: false });
+      }, COPIED_FEEDBACK_DURATION);
     }
   };
 
+  const orbTopLeft = running
+    ? costLevel === "high"
+      ? "bg-error-base opacity-40"
+      : costLevel === "mid"
+        ? "bg-warning-base opacity-35"
+        : "bg-feature-base opacity-30"
+    : "bg-feature-base opacity-30";
+
+  const orbTopRight = running
+    ? costLevel === "high"
+      ? "bg-error-base opacity-30"
+      : costLevel === "mid"
+        ? "bg-warning-base opacity-25"
+        : "bg-information-base opacity-25"
+    : "bg-information-base opacity-25";
+
+  const orbBottom = running
+    ? costLevel === "high"
+      ? "bg-warning-base opacity-30"
+      : costLevel === "mid"
+        ? "bg-feature-base opacity-20"
+        : "bg-success-base opacity-20"
+    : "bg-success-base opacity-20";
+
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-bg-white-0">
-      {/* Orbs */}
-      <div
-        className={cn(
-          "-top-32 -left-32 pointer-events-none absolute size-[400px] rounded-full opacity-30 blur-[100px] transition-all duration-[2000ms]",
-          running
-            ? costLevel === "high"
-              ? "bg-error-base opacity-40"
-              : costLevel === "mid"
-                ? "bg-warning-base opacity-35"
-                : "bg-feature-base"
-            : "bg-feature-base"
-        )}
+      <BackgroundOrbs
+        animated
+        bottom={orbBottom}
+        topLeft={orbTopLeft}
+        topRight={orbTopRight}
       />
-      <div
-        className={cn(
-          "-right-32 pointer-events-none absolute top-1/3 size-[350px] rounded-full opacity-25 blur-[100px] transition-all duration-[2000ms]",
-          running
-            ? costLevel === "high"
-              ? "bg-error-base opacity-30"
-              : costLevel === "mid"
-                ? "bg-warning-base opacity-25"
-                : "bg-information-base"
-            : "bg-information-base"
-        )}
-      />
-      <div
-        className={cn(
-          "-bottom-24 pointer-events-none absolute left-1/4 size-[300px] rounded-full opacity-20 blur-[100px] transition-all duration-[2000ms]",
-          running
-            ? costLevel === "high"
-              ? "bg-warning-base opacity-30"
-              : costLevel === "mid"
-                ? "bg-feature-base"
-                : "bg-success-base"
-            : "bg-success-base"
-        )}
-      />
+
+      {/* Screen reader live region for cost updates */}
+      <div aria-atomic="true" aria-live="polite" className="sr-only">
+        {liveAnnouncement}
+      </div>
 
       {/* Main */}
       <main className="relative flex flex-1 flex-col items-center justify-center px-5 py-12">
@@ -265,7 +401,7 @@ export function MeetingCounter() {
             </p>
             <h1
               className={cn(
-                "bg-gradient-to-r from-feature-dark via-error-base to-warning-base bg-clip-text font-[family-name:var(--font-display)] text-transparent italic leading-tight transition-all duration-700",
+                "font-[family-name:var(--font-display)] text-feature-dark italic leading-tight transition-all duration-700",
                 isSetup
                   ? "text-[2.75rem] md:text-[3.25rem]"
                   : "text-[1.75rem] md:text-[2rem]"
@@ -288,22 +424,30 @@ export function MeetingCounter() {
           {/* Grid overlay — inputs, counter & done share the same cell */}
           <div className="grid [&>*]:col-start-1 [&>*]:row-start-1">
             {/* ==================== SETUP (inputs + button) ==================== */}
-            <div
+            <form
               className={cn(
                 "flex flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)]",
                 isSetup
                   ? "translate-y-0 opacity-100"
                   : "-translate-y-8 pointer-events-none opacity-0"
               )}
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleStart();
+              }}
             >
               {/* Sentence inputs */}
               <div className="mx-auto max-w-[460px]">
                 <p className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1 text-center text-label-lg text-text-strong-950">
                   <span>Nous sommes</span>
                   <input
+                    aria-label="Nombre de participants"
                     className="inline-block w-[3.5ch] border-stroke-sub-300 border-b-2 bg-transparent text-center font-[family-name:var(--font-display)] text-feature-dark text-title-h4 italic outline-none transition-colors focus:border-feature-base"
                     id="people"
-                    onChange={(e) => setPeople(e.target.value)}
+                    min="1"
+                    onChange={(e) =>
+                      dispatch({ type: "SET_PEOPLE", value: e.target.value })
+                    }
                     placeholder="8"
                     type="number"
                     value={people}
@@ -311,10 +455,13 @@ export function MeetingCounter() {
                   <span>personnes</span>
                   <span>avec un salaire brut moyen de</span>
                   <input
+                    aria-label="Salaire brut moyen en euros"
                     className="inline-block w-[5.5ch] border-stroke-sub-300 border-b-2 bg-transparent text-center font-[family-name:var(--font-display)] text-feature-dark text-title-h4 italic outline-none transition-colors focus:border-feature-base"
                     id="salary"
-                    onChange={(e) => setSalary(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleStart()}
+                    min="1"
+                    onChange={(e) =>
+                      dispatch({ type: "SET_SALARY", value: e.target.value })
+                    }
                     placeholder="3500"
                     type="number"
                     value={salary}
@@ -327,13 +474,23 @@ export function MeetingCounter() {
               <div className="mx-auto mt-6 flex w-full max-w-[400px] flex-col gap-4">
                 {/* Optional: retroactive start time */}
                 <div className="flex items-center justify-between rounded-10 bg-bg-weak-50 px-4 py-3">
-                  <span className="text-paragraph-xs text-text-sub-600">
+                  <label
+                    className="text-paragraph-xs text-text-sub-600"
+                    htmlFor="start-time"
+                  >
                     Début de la réunion{" "}
                     <span className="text-text-soft-400">(optionnel)</span>
-                  </span>
+                  </label>
                   <input
+                    aria-label="Heure de début de la réunion"
                     className="bg-transparent text-right text-label-sm text-text-strong-950 outline-none"
-                    onChange={(e) => setStartTime(e.target.value)}
+                    id="start-time"
+                    onChange={(e) =>
+                      dispatch({
+                        type: "SET_START_TIME",
+                        value: e.target.value,
+                      })
+                    }
                     placeholder="Maintenant"
                     type="time"
                     value={startTime}
@@ -343,16 +500,15 @@ export function MeetingCounter() {
                 <FancyButton.Root
                   className="mt-2 w-full"
                   disabled={!canStart}
-                  onClick={handleStart}
                   size="medium"
-                  type="button"
+                  type="submit"
                   variant="neutral"
                 >
                   <FancyButton.Icon as={RiPlayLine} />
                   Lancer la réunion
                 </FancyButton.Root>
               </div>
-            </div>
+            </form>
 
             {/* ==================== COUNTER (running) ==================== */}
             <div
@@ -386,10 +542,7 @@ export function MeetingCounter() {
               </div>
 
               {/* Elapsed */}
-              <p
-                className="mb-8 text-paragraph-sm text-text-soft-400"
-                style={{ fontVariantNumeric: "tabular-nums" }}
-              >
+              <p className="mb-8 text-paragraph-sm text-text-soft-400 tabular-nums">
                 {fmtTime(elapsed)} écoulées
               </p>
 
@@ -505,25 +658,25 @@ export function MeetingCounter() {
           <p className="text-paragraph-xs text-text-soft-400">
             combien-tu-nous-coutes.com — aucune donnée collectée
           </p>
-          <nav className="flex gap-3">
-            <a
+          <nav aria-label="Liens légaux" className="flex gap-3">
+            <Link
               className="text-paragraph-xs text-text-soft-400 underline-offset-2 hover:text-text-sub-600 hover:underline"
               href="/privacy-policy"
             >
               Confidentialité
-            </a>
-            <a
+            </Link>
+            <Link
               className="text-paragraph-xs text-text-soft-400 underline-offset-2 hover:text-text-sub-600 hover:underline"
               href="/cookie-policy"
             >
               Cookies
-            </a>
-            <a
+            </Link>
+            <Link
               className="text-paragraph-xs text-text-soft-400 underline-offset-2 hover:text-text-sub-600 hover:underline"
               href="/terms-of-service"
             >
               CGU
-            </a>
+            </Link>
           </nav>
         </div>
       </footer>

@@ -17,7 +17,15 @@ export function PasswordInput(
           type={showPassword ? "text" : "password"}
           {...props}
         />
-        <button onClick={() => setShowPassword((s) => !s)} type="button">
+        <button
+          aria-label={
+            showPassword
+              ? "Masquer le mot de passe"
+              : "Afficher le mot de passe"
+          }
+          onClick={() => setShowPassword((s) => !s)}
+          type="button"
+        >
           {showPassword ? (
             <RiEyeOffLine className="size-5 text-text-soft-400 group-has-[disabled]:text-text-disabled-300" />
           ) : (
