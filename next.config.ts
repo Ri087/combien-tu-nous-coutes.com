@@ -1,7 +1,19 @@
 import "./env";
 
 const nextConfig = {
-  /* config options here */
+  headers: async () => {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "text/html; charset=utf-8",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
