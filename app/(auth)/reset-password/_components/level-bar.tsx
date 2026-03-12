@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import { cn } from "@/lib/utils/cn";
 
 const defaultLevelColors = {
@@ -20,34 +18,33 @@ function LevelBar({
   levelColors?: { [key: number]: string };
 } & React.HTMLAttributes<HTMLDivElement>) {
   return (
+    // biome-ignore lint/a11y/useSemanticElements: <meter> doesn't support custom visual styling with child divs
     <div
+      aria-label="Force du mot de passe"
+      aria-valuemax={levels}
+      aria-valuemin={0}
+      aria-valuenow={level}
       className={cn(
         "relative flex gap-2 overflow-hidden rounded-full",
         levelColors[1],
         className,
         levelColors[level]
       )}
+      role="meter"
       {...rest}
     >
       {Array.from({ length: levels }, (_, i) => i).map((currentLevel) => (
-        <LevelBarItem
-          active={currentLevel < level}
-          key={currentLevel}
-          level={level}
-          levels={levels}
-        />
+        <LevelBarItem key={currentLevel} level={level} levels={levels} />
       ))}
     </div>
   );
 }
 
 function LevelBarItem({
-  active,
   levels,
   level,
   ...rest
 }: {
-  active?: boolean;
   level: number;
   levels: number;
 } & React.HTMLAttributes<HTMLDivElement>) {
