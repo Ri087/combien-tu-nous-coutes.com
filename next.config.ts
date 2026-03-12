@@ -4,7 +4,7 @@ const nextConfig = {
   headers: async () => {
     return [
       {
-        source: "/:path*",
+        source: "/((?!_next/static).*)",
         headers: [
           {
             key: "Content-Type",
