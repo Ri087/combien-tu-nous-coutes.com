@@ -658,7 +658,13 @@ export function MeetingCounter() {
           <p className="text-paragraph-xs text-text-soft-400">
             combien-tu-nous-coutes.com — aucune donnée collectée
           </p>
-          <nav aria-label="Liens légaux" className="flex gap-3">
+          <nav aria-label="Liens" className="flex gap-3">
+            <Link
+              className="text-paragraph-xs text-text-soft-400 underline-offset-2 hover:text-text-sub-600 hover:underline"
+              href="/about"
+            >
+              À propos
+            </Link>
             <Link
               className="text-paragraph-xs text-text-soft-400 underline-offset-2 hover:text-text-sub-600 hover:underline"
               href="/privacy-policy"
